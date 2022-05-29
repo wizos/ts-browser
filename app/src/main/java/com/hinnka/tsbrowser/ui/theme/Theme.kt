@@ -6,7 +6,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.persist.Settings
@@ -38,6 +40,17 @@ fun TSBrowserTheme(content: @Composable() () -> Unit) {
         DarkColorPalette
     } else {
         LightColorPalette
+    }
+
+    // val darkIcons = MaterialTheme.colors.isLight
+    val darkIcons = colors == LightColorPalette
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = Color.Transparent,
+            darkIcons = darkIcons,
+            isNavigationBarContrastEnforced = false // 当需要完全透明的背景时，系统是否应该确保导航栏有足够的对比度。仅在API 29+上支持。
+        )
     }
 
     MaterialTheme(

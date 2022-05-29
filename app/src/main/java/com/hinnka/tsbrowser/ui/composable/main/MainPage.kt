@@ -4,16 +4,17 @@ import android.widget.FrameLayout
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.SnackbarHost
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ext.removeFromParent
 import com.hinnka.tsbrowser.persist.Settings
@@ -21,10 +22,7 @@ import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.composable.main.bottom.BottomBar
 import com.hinnka.tsbrowser.ui.composable.welcome.SecretWelcome
-import com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState
-import com.hinnka.tsbrowser.ui.composable.widget.StatusBar
-import com.hinnka.tsbrowser.ui.composable.widget.TSBackHandler
-import com.hinnka.tsbrowser.ui.composable.widget.TSBottomDrawer
+import com.hinnka.tsbrowser.ui.composable.widget.*
 import com.hinnka.tsbrowser.ui.home.UIState
 import kotlinx.coroutines.delay
 
@@ -40,15 +38,14 @@ fun MainPage() {
 
     TSBottomDrawer(drawerState = mainDrawerState) {
         CompositionLocalProvider(LocalMainDrawerState provides mainDrawerState) {
-            Column {
+            Column() {
                 StatusBar()
                 MainView()
             }
         }
     }
-    LongPressPopup()
-    Welcome()
-    logD("MainPage end")
+    // Welcome()
+    XLog.d("MainPage end")
 }
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -64,11 +61,11 @@ fun Welcome() {
         visible = showSecret,
         enter = fadeIn() + slideInVertically(
             initialOffsetY = { fullHeight -> fullHeight },
-            spring(stiffness = 250f)
+            animationSpec = spring(stiffness = 250f)
         ),
         exit = fadeOut() + slideOutVertically(
             targetOffsetY = { fullHeight -> fullHeight },
-            spring(stiffness = 250f)
+            animationSpec = spring(stiffness = 250f)
         )
     ) {
         TSBackHandler(onBack = {}) {
@@ -101,8 +98,10 @@ fun MainView() {
                         }
                     }
                 )
+                LongPressPopup()
+                SnackbarHost(modifier = Modifier.align(Alignment.BottomCenter), hostState = AlertBottomSheet.drawerState.snackbarHostState)
             }
-            ProgressIndicator()
+
             NewTabView()
             CoverView()
         }
@@ -152,7 +151,9 @@ fun ProgressIndicator() {
         LinearProgressIndicator(
             progress = progress,
             color = MaterialTheme.colors.primary,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
         )
     }
 }

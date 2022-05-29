@@ -57,6 +57,7 @@ fun DarkModeItem() {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
             Settings.darkMode = !Settings.darkMode
         } else {
+            Settings.darkMode = !Settings.darkMode
             Toast.makeText(context, R.string.dark_unsupport, Toast.LENGTH_SHORT).show()
         }
     }

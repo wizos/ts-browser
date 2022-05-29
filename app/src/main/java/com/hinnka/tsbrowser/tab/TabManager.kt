@@ -22,6 +22,22 @@ object TabManager {
     var isInitialized = false
         private set
 
+    fun open(context: Context, url: String, newTab: Boolean = false) {
+        if (newTab) {
+            newTab(context).apply {
+                loadUrl(url)
+                active()
+            }
+        } else {
+            val tab = find(url)
+            if(tab != null){
+                tab.active()
+            }else{
+                currentTab.value?.loadUrl(url)
+            }
+        }
+    }
+
     fun newTab(context: Context, webView: TSWebView = TSWebView(context)): Tab {
         val info = TabInfo()
         return Tab(info, webView).apply {
@@ -30,6 +46,13 @@ object TabManager {
             }
             tabs.add(this)
         }
+    }
+
+    fun find(url: String):Tab? {
+        tabs.find { it.info.url == url }?.let {
+            return it
+        }
+        return null
     }
 
     fun remove(id: Long) {

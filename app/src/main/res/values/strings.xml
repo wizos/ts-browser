@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">TSBrowser</string>
-    <string name="secret_name">Browser</string>
+    <string name="app_name">TheView</string>
+    <string name="secret_name">TheView</string>
     <string name="form_resubmission">Form resubmission</string>
     <string name="resend_data">Would you like to resend the data?</string>
     <string name="warning">Warning</string>
@@ -9,14 +9,15 @@
     <string name="password">Password</string>
     <string name="signin">Sign in</string>
     <string name="location">Location access</string>
-    <string name="location_message">%s want\'s to access your location.</string>
+    <string name="location_message">%s want\'s to access your location</string>
     <string name="newtab">New tab</string>
     <string name="download_message">Do you want to download file \"%1$s\"? (%2$s)</string>
     <string name="unknown_size">unknown size</string>
     <string name="download_channel">Download Notifications</string>
     <string name="download_complete">Download complete</string>
-    <string name="address_bar">Search or type web address.</string>
+    <string name="address_bar">Search or enter the URL</string>
     <string name="untiled">Untitled</string>
+    <string name="close">Close</string>
     <string name="closeAll">Close all</string>
     <string name="search_history">Search History</string>
     <string name="send_to">Share to..</string>
@@ -104,4 +105,6 @@
     <string name="ads_blocked">Ads blocked</string>
     <string name="times">times</string>
     <string name="set_default_browser">Set as default browser</string>
+    <string name="other">Other</string>
+    <string name="webpage_request_to_launch_x">Webpage request to launch "%1$s"</string>
 </resources>

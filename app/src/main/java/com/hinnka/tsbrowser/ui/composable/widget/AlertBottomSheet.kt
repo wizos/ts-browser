@@ -5,10 +5,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -17,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
-class AlertBottomSheet(val params: Params) {
+class AlertBottomSheet(private val params: Params) {
 
     fun show() {
         drawerState.cancelable = params.cancelable
@@ -25,7 +22,7 @@ class AlertBottomSheet(val params: Params) {
             val scope = rememberCoroutineScope()
             Column(Modifier.padding(16.dp)) {
                 if (params.title.isNotBlank()) {
-                    Text(text = params.title, style = MaterialTheme.typography.h6)
+                    Text(text = params.title, style = MaterialTheme.typography.h6, color = MaterialTheme.colors.onPrimary)
                 }
                 Box(
                     modifier = Modifier
@@ -33,18 +30,23 @@ class AlertBottomSheet(val params: Params) {
                         .heightIn(min = 100.dp)
                         .padding(vertical = 16.dp), contentAlignment = Alignment.CenterStart
                 ) {
-                    params.view?.let { view ->
-                        Box(modifier = Modifier
-                            .heightIn(max = 400.dp)
-                            .verticalScroll(
-                                rememberScrollState()
-                            )) {
-                            view()
+                    if(params.view != null){
+                        params.view?.let { view ->
+                            Box(modifier = Modifier
+                                .heightIn(max = 400.dp)
+                                .verticalScroll(
+                                    rememberScrollState()
+                                )) {
+                                view()
+                            }
                         }
-                    } ?: Text(
-                        text = params.message,
-                        fontSize = 14.sp
-                    )
+                    }else{
+                        Text(
+                            text = params.message,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                    }
                 }
                 Row(
                     horizontalArrangement = Arrangement.End, modifier = Modifier
@@ -58,7 +60,7 @@ class AlertBottomSheet(val params: Params) {
                                 drawerState.close()
                             }
                         }) {
-                            Text(text = params.negativeString)
+                            Text(text = params.negativeString, color = MaterialTheme.colors.onPrimary)
                         }
                     }
                     if (params.positiveString.isNotBlank()) {
@@ -68,7 +70,7 @@ class AlertBottomSheet(val params: Params) {
                                 drawerState.close()
                             }
                         }) {
-                            Text(text = params.positiveString)
+                            Text(text = params.positiveString, color = MaterialTheme.colors.onPrimary)
                         }
                     }
                 }
@@ -88,7 +90,7 @@ class AlertBottomSheet(val params: Params) {
     )
 
     class Builder(val context: Context) {
-        val params = Params()
+        private val params = Params()
 
         fun setTitle(@StringRes res: Int) {
             params.title = context.getString(res)
@@ -135,6 +137,12 @@ class AlertBottomSheet(val params: Params) {
 
         suspend fun close() {
             drawerState.close()
+        }
+
+        suspend fun show(message: String,
+                         actionLabel: String? = null,
+                         duration: SnackbarDuration = SnackbarDuration.Long, onClick:() -> Unit = {}){
+            drawerState.show(message, actionLabel, duration, onClick)
         }
     }
 }

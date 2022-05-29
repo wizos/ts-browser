@@ -1,6 +1,7 @@
 package com.hinnka.tsbrowser.download
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
@@ -18,11 +19,13 @@ import android.webkit.URLUtil
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ext.mimeType
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import com.hinnka.tsbrowser.ui.base.BaseActivity
+import com.hinnka.tsbrowser.util.getSaveableName
 import zlc.season.rxdownload4.RANGE_CHECK_HEADER
 import zlc.season.rxdownload4.file
 import zlc.season.rxdownload4.manager.*
@@ -30,6 +33,10 @@ import zlc.season.rxdownload4.recorder.RoomRecorder
 import zlc.season.rxdownload4.task.Task
 import java.io.File
 import java.io.FileInputStream
+import java.io.UnsupportedEncodingException
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+import java.util.regex.Pattern
 
 class DownloadHandler(val context: Context) : DownloadListener {
 
@@ -52,7 +59,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
             return
         }
 
-        val guessName = URLUtil.guessFileName(url, contentDisposition, mimetype)
+        val guessName = getFileName(url, contentDisposition, mimetype)
         val downloadSize = if (contentLength > 0) {
             formatFileSize(context, contentLength)
         } else {
@@ -68,8 +75,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
                     } catch (e: Exception) {
                     }
                 }
-                setNegativeButton(android.R.string.cancel) {
-                }
+                setNegativeButton(android.R.string.cancel) {}
             }.show()
         }
     }
@@ -94,6 +100,90 @@ class DownloadHandler(val context: Context) : DownloadListener {
         }
         return false
     }
+    private val P_FILE_NAME = Pattern.compile("attachment;\\s*filename\\s*=\\s*(\"?)([^\"]*)\\1\\s*$", Pattern.CASE_INSENSITIVE)
+    private val P_FILE_NAME2 = Pattern.compile("attachment;\\s*filename\\*\\s*=\\s*([^\"]*)'[^\"]*'([^\"]*)\\s*$", Pattern.CASE_INSENSITIVE)
+
+    private fun getFileName(url: String = "", contentDisposition: String?, mimeType: String?): String {
+        var fileNameByGuess: String? = null
+        var encoding: String? = null
+
+        // XLog.d("猜测的文件名为A：$mimeType -- $fileNameByGuess -- $contentDisposition")
+        // 处理会把 epub 文件，识别为 bin 文件的 bug：https://blog.csdn.net/imesong/article/details/45568697
+        if (!contentDisposition.isNullOrBlank()) {
+            var matcher = P_FILE_NAME.matcher(contentDisposition)
+            if (matcher.find()) {
+                matcher.group(2)?.also {
+                    fileNameByGuess = it
+                }
+            } else {
+                matcher = P_FILE_NAME2.matcher(contentDisposition)
+                if (matcher.find()) {
+                    encoding = matcher.group(1)
+                    matcher.group(2)?.also {
+                        fileNameByGuess = it
+                    }
+                }
+            }
+            if (fileNameByGuess.isNullOrBlank() || fileNameByGuess?.contains(".") == false) {
+                fileNameByGuess = URLUtil.guessFileName(url, contentDisposition, mimeType)
+            }
+        }
+
+        if (fileNameByGuess.isNullOrBlank() || fileNameByGuess?.contains(".") == false) {
+            // 从路径中获取
+            fileNameByGuess = getFileName(url)
+        }
+
+        if(encoding.isNullOrBlank()){
+            encoding = "UTF-8"
+        }
+
+        // XLog.d("猜测的文件名为B：$mimeType -- $fileNameByGuess -- $contentDisposition")
+        try {
+            fileNameByGuess = URLDecoder.decode(fileNameByGuess, encoding)
+        } catch (e: UnsupportedEncodingException) {
+            e.printStackTrace()
+        }
+
+        if(fileNameByGuess.isNullOrBlank()){
+            return System.currentTimeMillis().toString()
+        }else{
+            return fileNameByGuess!!
+        }
+    }
+
+    /**
+     * 从 url 中获取/与?之间的数据
+     *
+     * @param url 网址
+     * @return 文件名(含后缀)
+     */
+    fun getFileName(url: String): String {
+        var url = url
+        try {
+            url = URLDecoder.decode(url, StandardCharsets.UTF_8.displayName())
+        } catch (e: UnsupportedEncodingException) {
+            e.printStackTrace()
+            XLog.d("url 解码异常：$url")
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            XLog.d("url 解码异常：$url")
+        }
+        var fileName: String
+        var end = url.lastIndexOf("?")
+        if (end < 0) {
+            end = url.length
+        }
+        val start = url.lastIndexOf("/", end)
+        fileName = url.substring(start + 1, end)
+        fileName = getSaveableName(fileName)
+
+        // 减少文件名太长的情况
+        if (fileName.length > 64) {
+            fileName = fileName.substring(0, 64)
+        }
+        return fileName
+    }
 
     private fun getTask(url: String, guessName: String, mimetype: String?): Task {
         val savePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -113,6 +203,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
         }
         return Task(
             url = url,
+            taskName = saveName,
             saveName = saveName,
             savePath = savePath.path
         )
@@ -137,10 +228,10 @@ class DownloadHandler(val context: Context) : DownloadListener {
         val disposable = manager
             .subscribe { status ->
                 when (status) {
-                    is Failed -> logD("download error: ${status.throwable}")
-                    is Downloading -> logD("download state: ${status.progress}")
+                    is Failed -> XLog.d("download error: ${status.throwable}")
+                    is Downloading -> XLog.d("download state: ${status.progress}")
                     is Completed -> {
-                        logD("download finished")
+                        XLog.d("download finished")
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             addToPublicDownloadDir(url)
                         }
@@ -153,6 +244,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
         showDownloadingBadge.value = true
     }
 
+    @SuppressLint("Range")
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun addToPublicDownloadDir(url: String) {
         val resolver = context.contentResolver ?: return
@@ -201,10 +293,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
         val activity = context as? BaseActivity
         activity?.let {
             it.lifecycleScope.launchWhenCreated {
-                it.requestPermissions(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                )
+                it.requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE))
                 completion()
             }
         } ?: completion()

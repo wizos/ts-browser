@@ -30,7 +30,7 @@ fun PrivacyContent() {
         Row(
             Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color(0x66000000), RoundedCornerShape(8.dp))
+                // .border(1.dp, Color(0x66000000), RoundedCornerShape(8.dp))
                 .padding(16.dp), horizontalArrangement = Arrangement.SpaceAround
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {

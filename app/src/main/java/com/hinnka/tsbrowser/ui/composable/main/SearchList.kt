@@ -179,15 +179,15 @@ fun CurrentUrl(viewModel: AppViewModel, tab: Tab) {
                 overflow = TextOverflow.Ellipsis
             )
         }
-        IconButton(onClick = {
-            viewModel.share(url, title)
-        }) {
-            Icon(
-                imageVector = Icons.Default.Share,
-                contentDescription = "Share",
-                tint = Color.Gray
-            )
-        }
+        // IconButton(onClick = {
+        //     viewModel.share(url, title)
+        // }) {
+        //     // Icon(
+        //     //     imageVector = Icons.Default.Share,
+        //     //     contentDescription = "Share",
+        //     //     tint = Color.Gray
+        //     // )
+        // }
         IconButton(onClick = { viewModel.editInAddressBar(url) }) {
             Icon(
                 imageVector = Icons.Default.Edit,

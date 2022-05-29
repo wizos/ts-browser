@@ -22,7 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleEventObserver
 import com.hinnka.tsbrowser.App
+import com.hinnka.tsbrowser.PackageName
 import com.hinnka.tsbrowser.R
+import com.hinnka.tsbrowser.URL
 import com.hinnka.tsbrowser.persist.NameValue
 import com.hinnka.tsbrowser.persist.SettingOptions
 import com.hinnka.tsbrowser.persist.Settings
@@ -30,7 +32,10 @@ import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState
 import com.hinnka.tsbrowser.ui.composable.widget.TSAppBar
 import com.hinnka.tsbrowser.ui.composable.widget.TSBottomDrawer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -39,16 +44,27 @@ fun SettingsPage() {
     val scope = rememberCoroutineScope()
     val checkedItem = remember { mutableStateOf(NameValue("", "")) }
     val context = LocalContext.current
-    val isDefaultBrowser = remember { mutableStateOf(viewModel.isDefaultBrowser) }
+    val isDefaultBrowser = remember { mutableStateOf(false) }
     val state = remember { BottomDrawerState() }
     val lifecycleOwner = LocalLifecycleOwner.current
-    
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { source, event ->
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO){
             isDefaultBrowser.value = viewModel.isDefaultBrowser
-            viewModel.updateDefaultBrowserBadgeState()
+        }
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, _ ->
+            val mScope = MainScope()
+            mScope.launch {
+                withContext(Dispatchers.IO){
+                    isDefaultBrowser.value = viewModel.isDefaultBrowser
+                    viewModel.updateDefaultBrowserBadgeState()
+                }
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
+        // 当compose函数从画面上移除
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
@@ -143,33 +159,33 @@ fun SettingsPage() {
                         )
                     }
                 )
-                ListItem(
-                    modifier = Modifier.clickable {
-                        state.open {
-                            SetMnemonic {
-                                scope.launch {
-                                    state.close()
-                                }
-                            }
-                        }
-                    },
-                    secondaryText = { Text(text = stringResource(id = R.string.mnemonic_hint)) },
-                    text = {
-                        Text(
-                            text = stringResource(
-                                id = if (Settings.mnemonicState.value == null) {
-                                    R.string.set_mnemonic
-                                } else R.string.update_mnemonic
-                            )
-                        )
-                    },
-                    trailing = {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowRight,
-                            contentDescription = ""
-                        )
-                    }
-                )
+                // ListItem(
+                //     modifier = Modifier.clickable {
+                //         state.open {
+                //             SetMnemonic {
+                //                 scope.launch {
+                //                     state.close()
+                //                 }
+                //             }
+                //         }
+                //     },
+                //     secondaryText = { Text(text = stringResource(id = R.string.mnemonic_hint)) },
+                //     text = {
+                //         Text(
+                //             text = stringResource(
+                //                 id = if (Settings.mnemonicState.value == null) {
+                //                     R.string.set_mnemonic
+                //                 } else R.string.update_mnemonic
+                //             )
+                //         )
+                //     },
+                //     trailing = {
+                //         Icon(
+                //             imageVector = Icons.Default.KeyboardArrowRight,
+                //             contentDescription = ""
+                //         )
+                //     }
+                // )
                 ListItem(
                     modifier = Modifier.clickable {
                         state.open {
@@ -267,7 +283,7 @@ fun SettingsPage() {
                 )
                 ListItem(
                     modifier = Modifier.clickable { },
-                    secondaryText = { Text(text = "1.0.0") },
+                    secondaryText = { Text(text = App.instance.versionName()) },
                     text = { Text(text = stringResource(id = R.string.version)) },
                 )
                 ListItem(
@@ -284,9 +300,9 @@ fun SettingsPage() {
                     modifier = Modifier.clickable {
                         val intent = Intent(Intent.ACTION_VIEW).apply {
                             data = Uri.parse(
-                                "https://play.google.com/store/apps/details?id=com.hinnka.tsbrowser"
+                                URL.APP_PLAY
                             )
-                            setPackage("com.android.vending")
+                            setPackage(PackageName.PLAY)
                         }
                         try {
                             context.startActivity(intent)

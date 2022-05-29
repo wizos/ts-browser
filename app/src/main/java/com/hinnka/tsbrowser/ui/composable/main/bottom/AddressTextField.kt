@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.persist.IconMap
@@ -70,7 +71,7 @@ fun AddressTextField(modifier: Modifier, uiState: MutableState<UIState>) {
             if (state.isFocused) {
                 uiState.value = UIState.Search
             } else if (uiState.value == UIState.Search) {
-                logD("search mode enabled")
+                XLog.d("search mode enabled")
                 scope.launch {
                     focusRequester.requestFocus()
                 }
@@ -81,19 +82,17 @@ fun AddressTextField(modifier: Modifier, uiState: MutableState<UIState>) {
                 { Icon(imageVector = Icons.Default.Search, contentDescription = "Search") }
             }
             else -> {
-                {
-                    icon?.asImageBitmap()?.let {
+                if(icon!=null){
+                    {icon.asImageBitmap().let {
                         Image(
                             bitmap = it,
                             contentDescription = url,
                             modifier = Modifier.size(20.dp),
                         )
-                    } ?: Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "Info",
-                        modifier = Modifier.size(20.dp),
-                        tint = Color.LightGray
-                    )
+                    }
+                    }
+                }else{
+                    null
                 }
             }
         },

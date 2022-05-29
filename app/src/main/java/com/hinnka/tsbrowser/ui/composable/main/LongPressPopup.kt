@@ -6,12 +6,14 @@ import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.download.DownloadHandler
 import com.hinnka.tsbrowser.tab.TabManager
@@ -19,6 +21,7 @@ import com.hinnka.tsbrowser.tab.active
 import com.hinnka.tsbrowser.ui.home.LongPressInfo
 import com.hinnka.tsbrowser.ui.home.hidePopup
 import com.hinnka.tsbrowser.ui.LocalViewModel
+import com.hinnka.tsbrowser.ui.composable.widget.PopupMenu
 import zlc.season.rxdownload4.download
 import zlc.season.rxdownload4.file
 
@@ -28,9 +31,10 @@ fun LongPressPopup() {
     val tab = tabOpt ?: return
     val density = LocalDensity.current
     val info by tab.longPressState
-    DropdownMenu(
+
+    PopupMenu(alignment = Alignment.TopStart,
         expanded = info.show,
-        offset = with(density) { DpOffset(info.xOffset.toDp(), info.yOffset.toDp()) },
+        offset = density.run { IntOffset(info.xOffset, info.yOffset) },
         onDismissRequest = {
             info.hidePopup()
         },

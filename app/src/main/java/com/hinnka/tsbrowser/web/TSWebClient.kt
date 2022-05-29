@@ -1,5 +1,6 @@
 package com.hinnka.tsbrowser.web
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
@@ -11,6 +12,7 @@ import android.webkit.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.getValue
@@ -19,12 +21,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.adblock.AdBlocker
+import com.hinnka.tsbrowser.ext.getAppName
 import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ext.logE
 import com.hinnka.tsbrowser.persist.LocalStorage
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 class TSWebClient(private val controller: UIController) : WebViewClient() {
@@ -39,9 +45,14 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
 
     private val interceptUrls = mutableListOf<String>()
 
+    /**
+     * @return
+     * 返回 true 表示你已经处理此次请求。
+     * 返回 false 表示由webview自行处理（一般都是把此url加载出来）。
+     * 返回 super.shouldOverrideUrlLoading(view, url); 这个返回的方法会调用父类方法，也就是跳转至手机浏览器
+     */
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         val uri = request.url
-        logD(uri)
 
         if (localSchemes.contains(uri.scheme)) {
             return false
@@ -49,23 +60,37 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         return try {
             val intent = Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
             val componentName = intent.resolveActivity(view.context.packageManager)
-            if (componentName == null) {
-                val packageName = intent.`package`
-                if (!TextUtils.isEmpty(packageName)) {
-                    val marketIntent = Intent.parseUri("market://search?q=pname:$packageName", Intent.URI_INTENT_SCHEME)
+            if (request.hasGesture()){
+                if (componentName == null) {
+                    val packageName = intent.`package`
+                    if (!TextUtils.isEmpty(packageName)) {
+                        val marketIntent = Intent.parseUri("market://search?q=pname:$packageName", Intent.URI_INTENT_SCHEME)
+                        try {
+                            view.context.startActivity(marketIntent)
+                        } catch (e: Exception) {
+                        }
+                    }
+                } else {
                     try {
-                        view.context.startActivity(marketIntent)
+                        view.context.startActivity(intent)
                     } catch (e: Exception) {
                     }
                 }
-            } else {
-                try {
-                    view.context.startActivity(intent)
-                } catch (e: Exception) {
+            }else if (componentName != null) {
+                MainScope().launch {
+                    AlertBottomSheet.show(view.context.getString(R.string.webpage_request_to_launch_x, componentName.getAppName(view.context.packageManager)), view.context.getString(android.R.string.ok), onClick = {
+                        try {
+                            view.context.startActivity(intent)
+                        } catch (e: Exception) {
+                            XLog.e(e)
+                        }
+                    }
+                    )
                 }
             }
             true
         } catch (e: Exception) {
+            XLog.e(e)
             false
         }
     }
@@ -100,9 +125,9 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
     override fun onReceivedHttpError(
         view: WebView,
         request: WebResourceRequest,
-        errorResponse: WebResourceResponse
+        response: WebResourceResponse
     ) {
-        logE("http error ${errorResponse.statusCode}: ${errorResponse.reasonPhrase}")
+        XLog.e("http error ${request.url} ->${response.statusCode}: ${response.reasonPhrase}")
     }
 
     override fun onFormResubmission(view: WebView, dontResend: Message, resend: Message) {
@@ -123,6 +148,7 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         controller.doUpdateVisitedHistory(url, isReload)
     }
 
+    @SuppressLint("WebViewClientOnReceivedSslError")
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         if (System.currentTimeMillis() - sslLastTime <= sslKeepLastDuration) {
             if (sslLastAllow) {
@@ -167,7 +193,7 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Text(text = host, maxLines = 1)
+                    Text(text = host, maxLines = 1, color = MaterialTheme.colors.onPrimary)
                     OutlinedTextField(value = user, onValueChange = {
                         user = it
                     }, placeholder = { Text(text = stringResource(id = R.string.username)) })
@@ -217,27 +243,27 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         super.onPageCommitVisible(view, url)
     }
 
-//    override fun onReceivedError(
-//        view: WebView,
-//        request: WebResourceRequest,
-//        error: WebResourceErrorCompat
-//    ) {
-//        super.onReceivedError(view, request, error)
-//        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_CODE)) {
-//            if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_DESCRIPTION)) {
-//                logE(
-//                    "onReceivedError: ${request.url} ${error.errorCode} ${error.description}"
-//                )
-//            }
-//        }
-//    }
-//
-//    override fun onSafeBrowsingHit(
-//        view: WebView,
-//        request: WebResourceRequest,
-//        threatType: Int,
-//        callback: SafeBrowsingResponseCompat
-//    ) {
-//        super.onSafeBrowsingHit(view, request, threatType, callback)
-//    }
+    //    override fun onReceivedError(
+    //        view: WebView,
+    //        request: WebResourceRequest,
+    //        error: WebResourceErrorCompat
+    //    ) {
+    //        super.onReceivedError(view, request, error)
+    //        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_CODE)) {
+    //            if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_DESCRIPTION)) {
+    //                logE(
+    //                    "onReceivedError: ${request.url} ${error.errorCode} ${error.description}"
+    //                )
+    //            }
+    //        }
+    //    }
+    //
+    //    override fun onSafeBrowsingHit(
+    //        view: WebView,
+    //        request: WebResourceRequest,
+    //        threatType: Int,
+    //        callback: SafeBrowsingResponseCompat
+    //    ) {
+    //        super.onSafeBrowsingHit(view, request, threatType, callback)
+    //    }
 }

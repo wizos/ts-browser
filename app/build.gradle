@@ -14,15 +14,14 @@ android {
             keyPassword '900902'
         }
     }
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 31
 
     defaultConfig {
-        applicationId "com.hinnka.tsbrowser"
+        applicationId "me.wizos.theview"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 1
-        versionName "1.0"
+        versionName "1.1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,31 +55,43 @@ android {
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
 
-    implementation 'androidx.core:core-ktx:1.5.0'
-    implementation "androidx.fragment:fragment-ktx:1.3.5"
-    implementation 'androidx.appcompat:appcompat:1.3.0'
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.material:material:$compose_version"
+    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation "androidx.fragment:fragment-ktx:1.4.1"
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation "androidx.compose.ui:ui:1.2.0-beta02"
+    implementation "androidx.compose.material:material:1.2.0-beta02"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation "androidx.compose.ui:ui-tooling:$compose_version"
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
-    implementation 'androidx.activity:activity-compose:1.3.0-beta02'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
+    implementation 'androidx.activity:activity-compose:1.6.0-alpha03'
     implementation "androidx.webkit:webkit:1.4.0"
-    def room_version = "2.3.0"
+    def room_version = "2.4.2"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
-    def paging_version = "3.0.0"
+    implementation "androidx.room:room-paging:$room_version"
+    def paging_version = "3.1.1"
     implementation "androidx.paging:paging-runtime-ktx:$paging_version"
-    implementation "androidx.paging:paging-compose:1.0.0-alpha10"
+    implementation "androidx.paging:paging-compose:1.0.0-alpha14"
 
-    implementation 'com.google.android.material:material:1.3.0'
+    implementation 'com.google.android.material:material:1.6.0'
+
+
+    // Accompanist
+    // Insets for Jetpack Compose
+    implementation "com.google.accompanist:accompanist-insets:0.24.7-alpha"
+    // System UI Controller
+    // Jetpack Navigation Compose Material
+    // implementation 'com.google.accompanist:accompanist-navigation-material:0.24.7-alpha'
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.24.7-alpha"
 
     implementation "com.github.ssseasonnn:RxDownload:1.1.3"
+
+    // [https://github.com/jenly1314/ZXingLite]
+    implementation 'com.github.jenly1314:zxing-lite:2.1.1'
+
+    // [https://github.com/elvishew/xLog]
+    implementation 'com.elvishew:xlog:1.11.0'
 }

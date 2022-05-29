@@ -260,8 +260,7 @@ fun MoreButton(drawerState: BottomDrawerState) {
         if (showBadge) {
             Box(
                 Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)) {
+                    .wrapContentSize()) {
                 Spacer(
                     modifier = Modifier
                         .size(8.dp)

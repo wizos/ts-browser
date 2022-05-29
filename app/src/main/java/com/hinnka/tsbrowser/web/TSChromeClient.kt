@@ -42,6 +42,9 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
         controller.onShowCustomView(view, view.activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, callback)
     }
 
+    /**
+     * requestedOrientation 获取当前Activity的屏幕方向
+     */
     override fun onShowCustomView(
         view: View,
         requestedOrientation: Int,
@@ -172,7 +175,7 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
                     else -> ""
                 }
             }.filter { !TextUtils.isEmpty(it) }.toTypedArray()
-            controller.requestPermissions(*permissions)
+            controller.requestPermissions(permissions)
             request.grant(request.resources)
         }
     }

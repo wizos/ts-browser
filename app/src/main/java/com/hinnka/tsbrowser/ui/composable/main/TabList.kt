@@ -6,8 +6,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
@@ -30,6 +31,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -59,16 +61,17 @@ fun TabList() {
     val showAnim = remember { mutableStateOf(true) }
     val hideAnim = remember { mutableStateOf(false) }
     val resetAnim = remember { mutableStateOf(false) }
-    val listState = rememberLazyListState()
+    val listState = rememberLazyGridState()
     val statusBarHeight = statusBarHeight()
 
     LazyVerticalGrid(
-        cells = GridCells.Fixed(2),
+        columns = GridCells.Fixed(2),
         modifier = Modifier
             .background(MaterialTheme.colors.surface)
             .fillMaxSize(),
         state = listState,
-        contentPadding = PaddingValues(8.dp)
+        verticalArrangement = Arrangement.Bottom,
+        contentPadding = PaddingValues(8.dp),
     ) {
         items(tabs.size) {
             val tab = tabs[it]
@@ -90,7 +93,7 @@ fun TabList() {
                         }
                     }
             ) {
-                TabItem(tab = tabs[it]) {
+                TabItem(tab = tab, onTap = {
                     val lastActive = tab.info.isActive
                     tab.active()
                     if (tab.previewState.value != null) {
@@ -104,7 +107,7 @@ fun TabList() {
                     } else {
                         viewModel.uiState.value = UIState.Main
                     }
-                }
+                })
             }
         }
     }
@@ -112,7 +115,7 @@ fun TabList() {
     val tab = tabs.firstOrNull { it.info.isActive } ?: return
     val preview = tab.previewState.value ?: return
     LaunchedEffect(listState) {
-        listState.scrollToItem(tabs.indexOf(tab) / 2)
+        listState.scrollToItem( tabs.indexOf(tab) )
     }
     val offsetAnimate = animateIntOffsetAsState(
         targetValue = targetOffset.value,
@@ -188,42 +191,6 @@ fun TabItem(tab: Tab, onTap: () -> Unit) {
                     .weight(1f)
                     .padding(start = 3.dp)
             )
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clickable {
-                        val index = TabManager.tabs.indexOf(tab)
-                        TabManager.remove(tab)
-                        if (tab.info.isActive) {
-                            when {
-                                TabManager.tabs.size > index -> {
-                                    TabManager.tabs[index].active()
-                                }
-                                TabManager.tabs.isNotEmpty() -> {
-                                    TabManager.tabs
-                                        .last()
-                                        .active()
-                                }
-                                else -> {
-                                    TabManager.newTab(context).apply {
-                                        goHome()
-                                        active()
-                                    }
-                                    viewModel.uiState.value = UIState.Main
-                                }
-                            }
-                        }
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close",
-                    modifier = Modifier
-                        .size(22.dp)
-                        .padding(3.dp)
-                )
-            }
         }
         Spacer(
             modifier = Modifier
@@ -231,15 +198,61 @@ fun TabItem(tab: Tab, onTap: () -> Unit) {
                 .fillMaxWidth()
                 .background(Color.LightGray)
         )
-        preview.value?.asImageBitmap()?.let {
-            Image(
-                bitmap = it,
+        if(preview.value == null){
+            Spacer(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
-                contentDescription = tab.urlState.value,
-                alignment = Alignment.TopCenter,
-                contentScale = ContentScale.FillWidth
+                    .fillMaxWidth()
+            )
+        }else{
+            preview.value?.asImageBitmap()?.let {
+                Image(
+                    bitmap = it,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentDescription = tab.urlState.value,
+                    alignment = Alignment.TopCenter,
+                    contentScale = ContentScale.FillWidth
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .height(28.dp)
+                .fillMaxWidth()
+                .clickable {
+                    val index = TabManager.tabs.indexOf(tab)
+                    TabManager.remove(tab)
+                    if (tab.info.isActive) {
+                        when {
+                            TabManager.tabs.size > index -> {
+                                TabManager.tabs[index].active()
+                            }
+                            TabManager.tabs.isNotEmpty() -> {
+                                TabManager.tabs
+                                    .last()
+                                    .active()
+                            }
+                            else -> {
+                                TabManager.newTab(context).apply {
+                                    goHome()
+                                    active()
+                                }
+                                viewModel.uiState.value = UIState.Main
+                            }
+                        }
+                    }
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close",
+                modifier = Modifier
+                    .size(22.dp)
+                    .padding(3.dp)
             )
         }
     }

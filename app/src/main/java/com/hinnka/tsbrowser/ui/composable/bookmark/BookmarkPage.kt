@@ -9,10 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CreateNewFolder
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.NetworkCell
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,11 +22,15 @@ import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.persist.Bookmark
 import com.hinnka.tsbrowser.persist.BookmarkType
 import com.hinnka.tsbrowser.ext.host
+import com.hinnka.tsbrowser.persist.Favorite
 import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.ui.composable.widget.TSAppBar
 import com.hinnka.tsbrowser.ui.composable.widget.TSBackHandler
 import com.hinnka.tsbrowser.persist.IconMap
+import com.hinnka.tsbrowser.ui.composable.main.favorite.AddFavorite
+import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import com.hinnka.tsbrowser.ui.composable.widget.page.PageController
+import kotlinx.coroutines.launch
 
 @Composable
 fun BookmarkPage() {
@@ -118,6 +119,8 @@ fun FolderItem(bookmark: Bookmark, onClick: () -> Unit) {
 
 @Composable
 fun BookmarkItem(bookmark: Bookmark, onClick: () -> Unit) {
+    val scope = rememberCoroutineScope()
+
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
         onClick()
     }) {
@@ -128,7 +131,7 @@ fun BookmarkItem(bookmark: Bookmark, onClick: () -> Unit) {
             if (icon == null) {
                 Icon(
                     imageVector = Icons.Default.NetworkCell,
-                    contentDescription = "Folder",
+                    contentDescription = "Favicon",
                     tint = MaterialTheme.colors.primary,
                     modifier = Modifier.size(32.dp),
                 )
@@ -143,6 +146,20 @@ fun BookmarkItem(bookmark: Bookmark, onClick: () -> Unit) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = bookmark.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(text = bookmark.url, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.caption)
+        }
+        IconButton(onClick = {
+            AlertBottomSheet.open {
+                AddFavorite(Favorite(bookmark.url, bookmark.name)) {
+                    scope.launch {
+                        AlertBottomSheet.close()
+                    }
+                }
+            }
+        }) {
+            Icon(
+                imageVector = Icons.Default.Home,
+                contentDescription = "Home",
+            )
         }
         IconButton(onClick = { PageController.navigate("editBookmark", bookmark) }) {
             Icon(

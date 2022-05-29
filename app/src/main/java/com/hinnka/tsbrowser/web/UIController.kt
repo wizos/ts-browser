@@ -16,7 +16,7 @@ interface UIController {
     fun onHideCustomView()
     fun onCreateWindow(resultMsg: Message): Boolean
     fun onCloseWindow()
-    suspend fun requestPermissions(vararg permissions: String): Map<String, Boolean>
+    suspend fun requestPermissions(permissions: Array<String>): Map<String, Boolean>
     suspend fun showFileChooser(fileChooserParams: WebChromeClient.FileChooserParams): Array<Uri>?
     fun onPageStarted(url: String, favicon: Bitmap?)
     fun onPageFinished(url: String)
@@ -24,6 +24,6 @@ interface UIController {
 }
 
 suspend fun UIController.requestPermission(permission: String): Boolean {
-    val map = requestPermissions(permission)
+    val map = requestPermissions(arrayOf(permission))
     return map[permission] == true
 }

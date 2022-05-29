@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ui.LocalViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -78,6 +79,7 @@ fun TSBottomDrawer(
                     maxWidth = constraints.maxWidth.toDp(),
                     maxHeight = constraints.maxHeight.toDp()
                 )
+                .padding(start = 10.dp, end = 10.dp)
         }
 
         Box {
@@ -114,7 +116,7 @@ fun TSBottomDrawer(
                         translationY = -viewModel.imeHeightState.value
                     }
                     .offset { IntOffset(x = 0, y = drawerState.offset.value.roundToInt()) },
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                shape = RoundedCornerShape(16.dp),
                 color = drawerBackgroundColor,
                 contentColor = drawerContentColor,
                 elevation = DrawerDefaults.Elevation
@@ -130,6 +132,20 @@ fun TSBottomDrawer(
 
 @OptIn(ExperimentalComposeUiApi::class)
 class BottomDrawerState {
+    val snackbarHostState = SnackbarHostState()
+    suspend fun show(message: String,
+                     actionLabel: String? = null,
+                     duration: SnackbarDuration = SnackbarDuration.Short, onClick:() -> Unit = {}) {
+
+        when (snackbarHostState.showSnackbar(message = message, actionLabel = actionLabel, duration= duration)) {
+            SnackbarResult.ActionPerformed -> {
+                onClick()
+            }
+            SnackbarResult.Dismissed -> {
+                logD("SnackBar 消失")
+            }
+        }
+    }
 
     private var fullHeight = 0f
     internal val offset = Animatable(fullHeight)

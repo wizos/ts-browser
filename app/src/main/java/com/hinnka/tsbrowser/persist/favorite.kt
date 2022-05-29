@@ -3,6 +3,7 @@ package com.hinnka.tsbrowser.persist
 import androidx.room.*
 import androidx.room.OnConflictStrategy.REPLACE
 import com.hinnka.tsbrowser.R
+import kotlinx.coroutines.flow.Flow
 
 object Favorites {
     val default = listOf(
@@ -86,6 +87,9 @@ data class Favorite(
 interface FavoriteDao {
     @Query("SELECT * FROM favorite")
     fun getAll(): List<Favorite>
+
+    @Query("SELECT * FROM favorite")
+    fun getAllFlow(): Flow<List<Favorite>>
 
     @Insert(onConflict = REPLACE)
     fun addAll(vararg favorite: Favorite)

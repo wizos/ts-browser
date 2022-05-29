@@ -40,7 +40,7 @@ import kotlin.coroutines.resume
 @SuppressLint("SetJavaScriptEnabled")
 class TSWebView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
-) : WebView(context, attrs), UIController, LifecycleOwner {
+) : FastScrollWebView(context, attrs), UIController, LifecycleOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(context as LifecycleOwner)
     private var fullScreenView: ViewGroup? = null
@@ -284,7 +284,8 @@ class TSWebView @JvmOverloads constructor(
             parentView?.keepScreenOn = true
         } catch (e: Exception) {
         }
-        parentView?.setFullScreen(true)
+        // parentView?.setFullScreen(true)
+        (context as? MainActivity)?.window?.let { fullScreenView?.setFullScreen(it, true) }
         fullScreenView = parentView
     }
 
@@ -293,7 +294,8 @@ class TSWebView @JvmOverloads constructor(
             fullScreenView?.keepScreenOn = false
         } catch (e: Exception) {
         }
-        fullScreenView?.setFullScreen(false)
+        // fullScreenView?.setFullScreen(false)
+        (context as? MainActivity)?.window?.let { fullScreenView?.setFullScreen(it, true) }
         fullScreenView?.isVisible = false
         fullScreenView?.removeAllViews()
         if (activity?.requestedOrientation != origOrientation) {
@@ -311,9 +313,9 @@ class TSWebView @JvmOverloads constructor(
         dataListener?.onCloseWindow()
     }
 
-    override suspend fun requestPermissions(vararg permissions: String): Map<String, Boolean> {
+    override suspend fun requestPermissions(permissions: Array<String>): Map<String, Boolean> {
         val activity = context as? BaseActivity
-        return activity?.requestPermissions(*permissions) ?: mapOf()
+        return activity?.requestPermissions(permissions) ?: mapOf()
     }
 
     override suspend fun showFileChooser(fileChooserParams: WebChromeClient.FileChooserParams): Array<Uri>? {

@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
@@ -46,16 +43,16 @@ fun TSTextField(
         modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .height(40.dp)
-                .fillMaxWidth()
-                .border(1.dp, Color.LightGray, RoundedCornerShape(20.dp))
-                .background(
-                    color = MaterialTheme.colors.primaryLight, shape = RoundedCornerShape(20.dp),
-                ),
-        )
-        TextField(
+        // Box(
+        //     modifier = Modifier
+        //         .height(40.dp)
+        //         .fillMaxWidth()
+        //         .border(1.dp, Color.LightGray, RoundedCornerShape(20.dp))
+        //         .background(
+        //             color = MaterialTheme.colors.primaryLight, shape = RoundedCornerShape(20.dp),
+        //         ),
+        // )
+        OutlinedTextField(
             value = text.value,
             placeholder = {
                 Text(

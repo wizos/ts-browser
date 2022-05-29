@@ -11,12 +11,12 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 
-open class BaseActivity : AppCompatActivity() {
+open class BaseActivity : ComponentActivity() {
 
     private val requestCode = AtomicInteger()
     private val callbackMap = mutableMapOf<Int, (resultCode: Int, data: Intent?) -> Unit>()
 
-    lateinit var permissionLauncher: ActivityResultLauncher<Array<out String>>
+    private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     var permissionCallback: (Map<String, Boolean>) -> Unit = {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +27,7 @@ open class BaseActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun requestPermissions(vararg permissions: String): Map<String, Boolean> {
+    suspend fun requestPermissions(permissions: Array<String>): Map<String, Boolean> {
         return suspendCancellableCoroutine { continuation ->
             permissionCallback = {
                 continuation.resume(it)

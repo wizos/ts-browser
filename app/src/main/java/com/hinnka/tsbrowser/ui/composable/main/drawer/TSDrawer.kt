@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.GridCells
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -17,6 +17,8 @@ import com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TSDrawer(drawerState: BottomDrawerState) {
+    PrivacyContent()
+
     Row(
         modifier = Modifier
             .height(48.dp)
@@ -24,13 +26,11 @@ fun TSDrawer(drawerState: BottomDrawerState) {
     ) {
         BackButton()
         ForwardButton()
-        AddBookmarkButton()
+        AddBookmarkButton(drawerState = drawerState)
         ShareButton()
     }
 
-    PrivacyContent()
-
-    LazyVerticalGrid(cells = GridCells.Fixed(4), modifier = Modifier.padding(8.dp)) {
+    LazyVerticalGrid(columns = GridCells.Fixed(4), modifier = Modifier.padding(8.dp)) {
         item { DarkModeItem() }
         item {
             if (App.isSecretMode) {

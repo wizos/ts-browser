@@ -26,7 +26,7 @@ class OpenReceiver : BroadcastReceiver() {
     companion object {
 
         private val receiver = OpenReceiver()
-        private const val action = "com.hinnka.action.OPEN_FILE"
+        private const val action = "me.wizos.action.OPEN_FILE"
 
         fun register(context: Context) {
             val filter = IntentFilter(action)

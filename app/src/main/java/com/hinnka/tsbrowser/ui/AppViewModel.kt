@@ -18,14 +18,18 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.App
+import com.hinnka.tsbrowser.MediaType
 import com.hinnka.tsbrowser.R
+import com.hinnka.tsbrowser.URL
 import com.hinnka.tsbrowser.ext.*
 import com.hinnka.tsbrowser.persist.*
 import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.ui.home.SecretActivity
 import com.hinnka.tsbrowser.ui.home.UIState
 import com.hinnka.tsbrowser.util.DeviceUtil
+import com.king.zxing.CaptureActivity
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -38,10 +42,11 @@ class AppViewModel : ViewModel() {
     val canShowDefaultBrowserBadgeState = mutableStateOf(canShowDefaultBrowserBadge)
 
     val secretRequestCode = 0x101
+    val captureRequestCode = 0x102
 
     val isDefaultBrowser: Boolean
         get() {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(URL.GOOGLE))
             val info = App.instance.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
             return info?.activityInfo?.packageName == App.instance.packageName
         }
@@ -96,6 +101,9 @@ class AppViewModel : ViewModel() {
         }
     }
 
+    fun openQRScanner(context: Context){
+        (context as? Activity)?.startActivityForResult(Intent(context, CaptureActivity::class.java), captureRequestCode)
+    }
     fun onGo(text: String, context: Context) {
         val urlText = text.trim()
         if (urlText.isBlank()) {
@@ -105,7 +113,7 @@ class AppViewModel : ViewModel() {
             if (App.isSecretMode) {
                 (context as? Activity)?.finish()
             } else {
-                logD("start secret mode")
+                XLog.d("start secret mode")
                 (context as? Activity)?.startActivityForResult(Intent(context, SecretActivity::class.java).apply {
                     putExtra("mnemonic", urlText.md5())
                     addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
@@ -163,7 +171,7 @@ class AppViewModel : ViewModel() {
             if (title.isNotBlank()) {
                 putExtra(Intent.EXTRA_TITLE, title)
             }
-            type = "plain/text"
+            type = MediaType.TEXT_PLAIN
         }
         val chooser = Intent.createChooser(intent, App.instance[R.string.send_to]).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -173,7 +181,7 @@ class AppViewModel : ViewModel() {
 
     fun share(image: File) {
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "image/png"
+            type = MediaType.IMAGE_PNG
             val uri = FileProvider.getUriForFile(
                 App.instance,
                 App.instance.packageName + ".provider",

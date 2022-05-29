@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.download.DownloadHandler
@@ -28,6 +29,7 @@ import com.hinnka.tsbrowser.ext.longPress
 import com.hinnka.tsbrowser.ext.mainScope
 import com.hinnka.tsbrowser.persist.AppDatabase
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
+import com.hinnka.tsbrowser.ui.composable.widget.PopupMenu
 import com.hinnka.tsbrowser.ui.composable.widget.TSAppBar
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.coroutines.launch
@@ -37,12 +39,13 @@ import zlc.season.rxdownload4.recorder.RoomRecorder
 import zlc.season.rxdownload4.recorder.RxDownloadRecorder
 import zlc.season.rxdownload4.recorder.TaskEntity
 
-@SuppressLint("CheckResult")
+@SuppressLint("CheckResult", "UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun DownloadPage() {
     val tasks = remember { mutableStateListOf<TaskEntity>() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
 
     LaunchedEffect(Unit) {
         DownloadHandler.showDownloadingBadge.value = false
@@ -128,19 +131,17 @@ fun DownloadPage() {
         LazyColumn(modifier = Modifier.fillMaxSize(), state = state) {
             itemsIndexed(tasks) { index, entity ->
 
-                val showPopup = remember { mutableStateOf(false) }
-                val popupOffset = remember { mutableStateOf(DpOffset.Zero) }
                 val manager = entity.task.manager(
                     recorder = TSRecorder(),
                     notificationCreator = DownloadNotificationCreator()
                 )
-                val clipboardManager = LocalClipboardManager.current
-                val density = LocalDensity.current
+                val showPopup = remember { mutableStateOf(false) }
+                val popupOffset = remember { mutableStateOf(IntOffset.Zero) }
 
                 Box(modifier = Modifier
                     .longPress {
                         showPopup.value = true
-                        popupOffset.value = density.run { DpOffset(it.x.toDp(), it.y.toDp()) }
+                        popupOffset.value = IntOffset(it.x.toInt(), it.y.toInt())
                     }
                     .height(100.dp)) {
                     when (entity.status) {
@@ -157,31 +158,30 @@ fun DownloadPage() {
                             DownloadingItem(entity)
                         }
                     }
-                }
 
-                DropdownMenu(
-                    expanded = showPopup.value,
-                    offset = popupOffset.value,
-                    onDismissRequest = { showPopup.value = false },
-                ) {
-                    DropdownMenuItem(onClick = {
-                        clipboardManager.setText(AnnotatedString(entity.task.url))
-                        showPopup.value = false
-                    }) {
-                        Text(
-                            text = stringResource(id = R.string.copy_link),
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        )
-                    }
-                    DropdownMenuItem(onClick = {
-                        manager.delete()
-                        tasks.removeAll { item -> item.id == entity.id }
-                        showPopup.value = false
-                    }) {
-                        Text(
-                            text = stringResource(id = R.string.delete),
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        )
+                    PopupMenu(alignment = Alignment.TopStart,
+                        expanded = showPopup.value,
+                        offset = popupOffset.value,
+                        onDismissRequest = { showPopup.value = false },){
+                        DropdownMenuItem(onClick = {
+                            clipboardManager.setText(AnnotatedString(entity.task.url))
+                            showPopup.value = false
+                        }) {
+                            Text(
+                                text = stringResource(id = R.string.copy_link),
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                        }
+                        DropdownMenuItem(onClick = {
+                            manager.delete()
+                            tasks.removeAll { item -> item.id == entity.id }
+                            showPopup.value = false
+                        }) {
+                            Text(
+                                text = stringResource(id = R.string.delete),
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                        }
                     }
                 }
             }

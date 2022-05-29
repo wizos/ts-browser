@@ -3,9 +3,21 @@ package com.hinnka.tsbrowser
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.webkit.WebView
+import cc.ibooker.zkeepalivelib.ZKeepAlive
+import com.elvishew.xlog.LogConfiguration
+import com.elvishew.xlog.LogLevel
+import com.elvishew.xlog.LogLevel.*
+import com.elvishew.xlog.XLog
+import com.elvishew.xlog.flattener.ClassicFlattener
+import com.elvishew.xlog.printer.AndroidPrinter
+import com.elvishew.xlog.printer.Printer
+import com.elvishew.xlog.printer.file.FilePrinter
+import com.elvishew.xlog.printer.file.clean.FileLastModifiedCleanStrategy
+import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
 import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ext.logE
 import com.hinnka.tsbrowser.persist.Bookmark
@@ -17,11 +29,11 @@ import java.util.*
 
 
 class App : Application() {
-
     override fun onCreate() {
         super.onCreate()
-        logD("$processName onCreate")
         instance = this
+        initLog();
+        XLog.d("$processName onCreate")
         configWebViewCacheDirWithAndroidP()
         RxJavaPlugins.setErrorHandler {
             logE("RxJava run error", throwable = it)
@@ -30,7 +42,9 @@ class App : Application() {
             `package` = packageName
         })
         initBrowser()
-        logD("$processName onCreate complete")
+        if(BuildConfig.DEBUG) ZKeepAlive.instance.register(this)
+
+        XLog.d("$processName onCreate complete")
     }
 
     private fun initBrowser() {
@@ -40,6 +54,27 @@ class App : Application() {
         }
         Bookmark.init()
         Favorites.init()
+    }
+
+    private fun initLog(){
+        val config = LogConfiguration.Builder()
+            .logLevel(if (BuildConfig.DEBUG) LogLevel.ALL else LogLevel.INFO)
+            // .tag(Contract.LOREAD)
+            .enableStackTrace(1)
+            // .stackTraceFormatter(SingleStackTraceFormatter())
+            .build()
+
+        val androidPrinter: Printer = AndroidPrinter()
+        val filePrinter: Printer =
+            FilePrinter.Builder(externalCacheDir.toString() + "/log/") // 指定保存日志文件的路径
+                .flattener(ClassicFlattener())
+                .fileNameGenerator(DateFileNameGenerator()) // 指定日志文件名生成器，默认为 ChangelessFileNameGenerator("log")
+                // .backupStrategy(new NeverBackupStrategy())         // 指定日志文件备份策略，默认为 FileSizeBackupStrategy(1024 * 1024)
+                // .shouldBackup()
+                .cleanStrategy(FileLastModifiedCleanStrategy(3 * 24 * 3600 * 1000)) // 指定日志文件清除策略，默认为 NeverCleanStrategy()
+                .build()
+        // 初始化 XLog
+        XLog.init(config, androidPrinter, filePrinter)
     }
 
     private fun configWebViewCacheDirWithAndroidP() {
@@ -57,7 +92,7 @@ class App : Application() {
         lateinit var instance: App
 
         val processName: String by lazy {
-            if (Build.VERSION.SDK_INT >= 28) getProcessName() else try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) getProcessName() else try {
                 @SuppressLint("PrivateApi")
                 val activityThread = Class.forName("android.app.ActivityThread")
                 val methodName = "currentProcessName"
@@ -77,6 +112,15 @@ class App : Application() {
         val isSecretMode: Boolean by lazy { processName.endsWith("secret") }
 
         @SuppressLint("ConstantLocale")
-        val isCN: Boolean = Locale.getDefault().country.toUpperCase(Locale.ROOT) == "CN"
+        val isCN: Boolean = Locale.getDefault().country.uppercase(Locale.ROOT) == "CN"
     }
+
+    fun versionName(): String {
+        return try {
+            packageManager.getPackageInfo(packageName, 0).versionName
+        } catch (unused: PackageManager.NameNotFoundException) {
+            ""
+        }
+    }
+
 }
