@@ -256,11 +256,9 @@ fun MoreButton(drawerState: BottomDrawerState) {
             TSDrawer(drawerState)
         }
     }) {
-        Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Menu")
-        if (showBadge) {
-            Box(
-                Modifier
-                    .wrapContentSize()) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(imageVector = Icons.Default.MoreVert, contentDescription = "Menu")
+            if (showBadge) {
                 Spacer(
                     modifier = Modifier
                         .size(8.dp)
