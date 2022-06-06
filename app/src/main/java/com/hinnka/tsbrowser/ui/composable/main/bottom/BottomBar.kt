@@ -26,15 +26,14 @@ fun BottomBar() {
     val tab = TabManager.currentTab.value
     val uiState = viewModel.uiState
     val drawerState = LocalMainDrawerState.current
-    //卡片
+
     Card(
+        modifier = Modifier.graphicsLayer {
+            translationY = -viewModel.imeHeightState.value
+        },
         elevation = 10.dp //阴影高度
     ) {
-        Column(modifier = Modifier.graphicsLayer {
-            translationY = -viewModel.imeHeightState.value
-        }
-        ) {
-
+        Column {
             AnimatedVisibility(visible = uiState.value == UIState.Main) {
                 ProgressIndicator()
             }
