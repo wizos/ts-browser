@@ -17,17 +17,24 @@ import com.hinnka.tsbrowser.persist.Settings
 private val DarkColorPalette = darkColors(
     primary = Teal200,
     primaryVariant = Color.Black,
-    secondary = Teal200,
     onPrimary = Color.White,
+    secondary = Teal200,
     surface = Color.Black,
     onSurface = Color.White,
+    background = Color.Black,
+    onBackground = Color.White,
 )
 
+@SuppressLint("ConflictingOnColor")
 private val LightColorPalette = lightColors(
     primary = Teal200,
     primaryVariant = Teal700,
+    onPrimary = Color.White,
     secondary = Teal200,
     surface = Color.White,
+    onSurface = Color.Black,
+    background = Color.White,
+    onBackground = Color.Black,
 )
 
 val Colors.primaryLight: Color get() = if (isLight) PrimaryWhite else PrimaryDark

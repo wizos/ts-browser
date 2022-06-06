@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -22,7 +23,7 @@ class AlertBottomSheet(private val params: Params) {
             val scope = rememberCoroutineScope()
             Column(Modifier.padding(16.dp)) {
                 if (params.title.isNotBlank()) {
-                    Text(text = params.title, style = MaterialTheme.typography.h6, color = MaterialTheme.colors.onPrimary)
+                    Text(text = params.title, style = MaterialTheme.typography.h6, color = MaterialTheme.colors.onSurface)
                 }
                 Box(
                     modifier = Modifier
@@ -42,9 +43,10 @@ class AlertBottomSheet(private val params: Params) {
                         }
                     }else{
                         Text(
+                            modifier = Modifier.alpha(0.8f),
                             text = params.message,
                             fontSize = 14.sp,
-                            color = MaterialTheme.colors.onPrimary
+                            color = MaterialTheme.colors.onSurface,
                         )
                     }
                 }
@@ -60,7 +62,7 @@ class AlertBottomSheet(private val params: Params) {
                                 drawerState.close()
                             }
                         }) {
-                            Text(text = params.negativeString, color = MaterialTheme.colors.onPrimary)
+                            Text(text = params.negativeString, color = MaterialTheme.colors.onSurface)
                         }
                     }
                     if (params.positiveString.isNotBlank()) {
