@@ -4,8 +4,8 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
         google()
         mavenCentral()
-        jcenter() // Warning: this repository is going to shut down soon
+        // jcenter() // Warning: this repository is going to shut down soon
     }
 }
-rootProject.name = "TSBrowser"
+rootProject.name = "TheView"
 include ':app'
