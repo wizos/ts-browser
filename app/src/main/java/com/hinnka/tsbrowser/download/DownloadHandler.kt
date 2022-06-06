@@ -100,14 +100,14 @@ class DownloadHandler(val context: Context) : DownloadListener {
         }
         return false
     }
-    private val P_FILE_NAME = Pattern.compile("attachment;\\s*filename\\s*=\\s*(\"?)([^\"]*)\\1\\s*$", Pattern.CASE_INSENSITIVE)
-    private val P_FILE_NAME2 = Pattern.compile("attachment;\\s*filename\\*\\s*=\\s*([^\"]*)'[^\"]*'([^\"]*)\\s*$", Pattern.CASE_INSENSITIVE)
+    private val P_FILE_NAME = Pattern.compile("attachment;\\s*filename\\s*=\\s*(\"?)([^\"]*)(\\1\\s*;|\\1\\s*\$)", Pattern.CASE_INSENSITIVE)
+    private val P_FILE_NAME2 = Pattern.compile("attachment;\\s*filename\\s*\\*\\s*=\\s*([^\"]*)'[^\"]*'([^\"]*)(\\s*;|\\s*\$)", Pattern.CASE_INSENSITIVE)
 
     private fun getFileName(url: String = "", contentDisposition: String?, mimeType: String?): String {
         var fileNameByGuess: String? = null
         var encoding: String? = null
 
-        // XLog.d("猜测的文件名为A：$mimeType -- $fileNameByGuess -- $contentDisposition")
+        // XLog.d("猜测文件名：$url -- $mimeType -- $contentDisposition")
         // 处理会把 epub 文件，识别为 bin 文件的 bug：https://blog.csdn.net/imesong/article/details/45568697
         if (!contentDisposition.isNullOrBlank()) {
             var matcher = P_FILE_NAME.matcher(contentDisposition)
@@ -124,11 +124,14 @@ class DownloadHandler(val context: Context) : DownloadListener {
                     }
                 }
             }
+            // XLog.d("猜测文件名B：$url -- $$fileNameByGuess")
             if (fileNameByGuess.isNullOrBlank() || fileNameByGuess?.contains(".") == false) {
                 fileNameByGuess = URLUtil.guessFileName(url, contentDisposition, mimeType)
+                // XLog.d("猜测文件名C：$url -- $$fileNameByGuess")
             }
         }
 
+        // XLog.d("猜测文件名D：$url -- $$fileNameByGuess")
         if (fileNameByGuess.isNullOrBlank() || fileNameByGuess?.contains(".") == false) {
             // 从路径中获取
             fileNameByGuess = getFileName(url)
@@ -138,7 +141,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
             encoding = "UTF-8"
         }
 
-        // XLog.d("猜测的文件名为B：$mimeType -- $fileNameByGuess -- $contentDisposition")
+        // XLog.d("猜测文件名E：$url -- $$fileNameByGuess")
         try {
             fileNameByGuess = URLDecoder.decode(fileNameByGuess, encoding)
         } catch (e: UnsupportedEncodingException) {
