@@ -65,9 +65,12 @@ class DownloadNotificationCreator : NotificationCreator {
                     status.progress.downloadSize.toInt(),
                     status.progress.isChunked
                 )
-                //Do not need notification
+                // Do not need notification
                 is Normal -> return null
                 is Deleted -> return null
+                // 设置他为一个正在进行的通知,通常是用来表示一个后台任务,以某种方式正在等待,如一个文件下载,同步操作
+                is Completed -> builder.setOngoing(false)
+                is Failed -> builder.setOngoing(false)
                 else -> {}
             }
             return builder

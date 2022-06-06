@@ -225,21 +225,21 @@ class DownloadHandler(val context: Context) : DownloadListener {
             notificationCreator = DownloadNotificationCreator()
         )
 
-        val disposable = manager
-            .subscribe { status ->
-                when (status) {
-                    is Failed -> XLog.d("download error: ${status.throwable}")
-                    is Downloading -> XLog.d("download state: ${status.progress}")
-                    is Completed -> {
-                        XLog.d("download finished")
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            addToPublicDownloadDir(url)
-                        }
-                    }
-                    else -> {
-                    }
-                }
-            }
+        // val disposable = manager
+        //     .subscribe { status ->
+        //         when (status) {
+        //             is Failed -> XLog.d("download error: ${status.throwable}")
+        //             is Downloading -> XLog.d("download state: ${status.progress}")
+        //             is Completed -> {
+        //                 XLog.d("download finished")
+        //                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        //                     addToPublicDownloadDir(url)
+        //                 }
+        //             }
+        //             else -> {
+        //             }
+        //         }
+        //     }
         manager.start()
         showDownloadingBadge.value = true
     }
