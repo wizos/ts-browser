@@ -6,11 +6,15 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import androidx.compose.animation.core.Animatable
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.SnackbarResult
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -29,8 +33,12 @@ import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.ui.home.SecretActivity
 import com.hinnka.tsbrowser.ui.home.UIState
 import com.hinnka.tsbrowser.util.DeviceUtil
+import com.hinnka.tsbrowser.util.savePictures
 import com.king.zxing.CaptureActivity
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -40,6 +48,18 @@ class AppViewModel : ViewModel() {
     val addressText = mutableStateOf(TextFieldValue())
     val imeHeightState = Animatable(0f)
     val canShowDefaultBrowserBadgeState = mutableStateOf(canShowDefaultBrowserBadge)
+
+    val snackBarHostState = SnackbarHostState()
+    suspend fun showSnackBar(message: String, actionLabel: String? = null, duration: SnackbarDuration = SnackbarDuration.Short, onClick:() -> Unit = {}){
+        when (snackBarHostState.showSnackbar(message = message, actionLabel = actionLabel, duration= duration)) {
+            SnackbarResult.ActionPerformed -> {
+                onClick()
+            }
+            SnackbarResult.Dismissed -> {
+                logD("SnackBar 消失")
+            }
+        }
+    }
 
     val secretRequestCode = 0x101
     val captureRequestCode = 0x102
@@ -164,6 +184,18 @@ class AppViewModel : ViewModel() {
     fun editInAddressBar(url: String) {
         addressText.value = TextFieldValue(url, TextRange(url.length, url.length))
     }
+
+    fun loadBitmapByDataUrl(url: String) {
+        ioScope.launch {
+            val job = async {
+                println("async 正在执行")
+                return@async "返回值"
+            }
+            delay(1000)
+            return@launch println("async 返回结果：${job.await()}")
+        }
+    }
+
 
     fun share(url: String, title: String = "") {
         val intent = Intent(Intent.ACTION_SEND).apply {

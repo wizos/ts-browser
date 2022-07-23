@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileDownloadDone
 import androidx.compose.material.icons.filled.FileDownloadOff
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.download.DownloadNotificationCreator
 import com.hinnka.tsbrowser.download.open
@@ -33,7 +35,10 @@ import java.util.*
 
 
 @Composable
-fun DownloadingItem(entity: TaskEntity) {
+fun DownloadingItem(item: TaskEntity) { // item: TaskEntity tasks:List<TaskEntity>, index:Int
+    val entity = remember { item }
+    // XLog.d("进度11111：" + item.progress.percentStr())
+    // XLog.d("进度22222：" + entity.progress.percentStr())
     Row(
         modifier = Modifier.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically

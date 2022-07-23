@@ -12,9 +12,7 @@ import android.webkit.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,19 +20,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.elvishew.xlog.XLog
+import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.adblock.AdBlocker
 import com.hinnka.tsbrowser.ext.getAppName
 import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ext.logE
 import com.hinnka.tsbrowser.persist.LocalStorage
+import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 class TSWebClient(private val controller: UIController) : WebViewClient() {
-
     companion object {
         val localSchemes = arrayOf("http", "https", "ftp", "file", "about", "data", "javascript")
         val sslKeepLastDuration = TimeUnit.SECONDS.toMillis(15)
@@ -58,34 +57,34 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
             return false
         }
         return try {
-            val intent = Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
-            val componentName = intent.resolveActivity(view.context.packageManager)
-            if (request.hasGesture()){
-                if (componentName == null) {
-                    val packageName = intent.`package`
-                    if (!TextUtils.isEmpty(packageName)) {
-                        val marketIntent = Intent.parseUri("market://search?q=pname:$packageName", Intent.URI_INTENT_SCHEME)
-                        try {
-                            view.context.startActivity(marketIntent)
-                        } catch (e: Exception) {
-                        }
-                    }
-                } else {
-                    try {
-                        view.context.startActivity(intent)
-                    } catch (e: Exception) {
-                    }
+            var intent = Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
+            var componentName = intent.resolveActivity(view.context.packageManager)
+            if (componentName == null) {
+                intent.`package`?.let {
+                    intent = Intent.parseUri("market://search?q=pname:$it", Intent.URI_INTENT_SCHEME)
+                    componentName = intent.resolveActivity(view.context.packageManager)
                 }
-            }else if (componentName != null) {
-                MainScope().launch {
-                    AlertBottomSheet.show(view.context.getString(R.string.webpage_request_to_launch_x, componentName.getAppName(view.context.packageManager)), view.context.getString(android.R.string.ok), onClick = {
+            }
+            if (componentName == null) {
+                return false
+            }
+
+            MainScope().launch {
+                when(App.snackBarHostState.showSnackbar(
+                    view.context.getString(R.string.webpage_request_to_launch_x, componentName.getAppName(view.context.packageManager)),
+                    view.context.getString(android.R.string.ok),
+                    SnackbarDuration.Short
+                )){
+                    SnackbarResult.ActionPerformed -> {
                         try {
                             view.context.startActivity(intent)
                         } catch (e: Exception) {
                             XLog.e(e)
                         }
                     }
-                    )
+                    SnackbarResult.Dismissed -> {
+                        logD("SnackBar 消失")
+                    }
                 }
             }
             true
@@ -243,27 +242,27 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         super.onPageCommitVisible(view, url)
     }
 
-    //    override fun onReceivedError(
-    //        view: WebView,
-    //        request: WebResourceRequest,
-    //        error: WebResourceErrorCompat
-    //    ) {
-    //        super.onReceivedError(view, request, error)
-    //        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_CODE)) {
-    //            if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_DESCRIPTION)) {
-    //                logE(
-    //                    "onReceivedError: ${request.url} ${error.errorCode} ${error.description}"
-    //                )
-    //            }
-    //        }
-    //    }
+    // override fun onReceivedError(
+    //     view: WebView,
+    //     request: WebResourceRequest,
+    //     error: WebResourceError
+    // ) {
+    //     super.onReceivedError(view, request, error)
+    //     if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_CODE)) {
+    //         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_DESCRIPTION)) {
+    //             logE(
+    //                 "onReceivedError: ${request.url} ${error.errorCode} ${error.description}"
+    //             )
+    //         }
+    //     }
+    // }
     //
-    //    override fun onSafeBrowsingHit(
-    //        view: WebView,
-    //        request: WebResourceRequest,
-    //        threatType: Int,
-    //        callback: SafeBrowsingResponseCompat
-    //    ) {
-    //        super.onSafeBrowsingHit(view, request, threatType, callback)
-    //    }
+    // override fun onSafeBrowsingHit(
+    //     view: WebView,
+    //     request: WebResourceRequest,
+    //     threatType: Int,
+    //     callback: SafeBrowsingResponseCompat
+    // ) {
+    //     super.onSafeBrowsingHit(view, request, threatType, callback)
+    // }
 }

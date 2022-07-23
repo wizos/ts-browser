@@ -136,7 +136,6 @@ class BottomDrawerState {
     suspend fun show(message: String,
                      actionLabel: String? = null,
                      duration: SnackbarDuration = SnackbarDuration.Short, onClick:() -> Unit = {}) {
-
         when (snackbarHostState.showSnackbar(message = message, actionLabel = actionLabel, duration= duration)) {
             SnackbarResult.ActionPerformed -> {
                 onClick()

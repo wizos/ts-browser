@@ -10,10 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.ext.encodeToPath
-import com.hinnka.tsbrowser.ext.host
 import com.hinnka.tsbrowser.ext.mainScope
 import com.hinnka.tsbrowser.persist.*
-import com.hinnka.tsbrowser.ui.home.LongPressInfo
+import com.hinnka.tsbrowser.ui.composable.main.LongPressInfo
 import com.hinnka.tsbrowser.web.TSWebView
 import com.hinnka.tsbrowser.web.WebDataListener
 import kotlinx.coroutines.launch
@@ -130,7 +129,7 @@ data class Tab(
     }
 
     fun onPause() {
-//        view.generatePreview()
+        // view.generatePreview()
         view.onPause()
     }
 

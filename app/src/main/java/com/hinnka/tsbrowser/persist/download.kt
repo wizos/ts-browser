@@ -1,6 +1,8 @@
 package com.hinnka.tsbrowser.persist
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 import zlc.season.rxdownload4.manager.Status
 import zlc.season.rxdownload4.recorder.TaskEntity
 
@@ -19,7 +21,13 @@ interface DownloadDao {
     suspend fun delete(taskEntity: TaskEntity): Int
 
     @Query("SELECT * FROM task_record")
-    suspend fun getAll(): List<TaskEntity>
+    suspend fun getAll(): MutableList<TaskEntity>
+
+    @Query("SELECT * FROM task_record")
+    fun getAllFlow(): Flow<List<TaskEntity>>
+
+    @Query("SELECT * FROM task_record")
+    fun getAllLiveData(): LiveData<List<TaskEntity>>
 
     @Query("SELECT * FROM task_record WHERE status IN(:status)")
     suspend fun getAllWithStatus(vararg status: Status): List<TaskEntity>

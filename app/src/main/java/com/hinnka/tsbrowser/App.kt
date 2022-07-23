@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.webkit.WebView
+import androidx.compose.material.SnackbarHostState
 import cc.ibooker.zkeepalivelib.ZKeepAlive
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
@@ -23,6 +24,7 @@ import com.hinnka.tsbrowser.ext.logE
 import com.hinnka.tsbrowser.persist.Bookmark
 import com.hinnka.tsbrowser.persist.Favorites
 import io.reactivex.plugins.RxJavaPlugins
+import zlc.season.rxdownload4.recorder.RxDownloadRecorder
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.*
@@ -44,12 +46,13 @@ class App : Application() {
         initBrowser()
         if(BuildConfig.DEBUG) ZKeepAlive.instance.register(this)
 
+        RxDownloadRecorder
         XLog.d("$processName onCreate complete")
     }
 
     private fun initBrowser() {
+        //FIXME hack for RxDownload init in sub process
         if (processName != packageName) {
-            //FIXME hack for RxDownload init in sub process
             contentResolver.insert(Uri.parse("content://$packageName.claritypotion/start"), null)
         }
         Bookmark.init()
@@ -87,9 +90,10 @@ class App : Application() {
     }
 
     companion object {
-
         @JvmStatic
         lateinit var instance: App
+
+        val snackBarHostState = SnackbarHostState()
 
         val processName: String by lazy {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) getProcessName() else try {

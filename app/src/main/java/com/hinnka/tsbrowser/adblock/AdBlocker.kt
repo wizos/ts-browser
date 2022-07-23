@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream
 import java.util.regex.Pattern
 
 object AdBlocker {
-
     private val urlList = mutableListOf<String>()
     private val WHITESPACES = Pattern.compile("[ \t]+")
 

@@ -1,4 +1,4 @@
-package com.hinnka.tsbrowser.ui.home
+package com.hinnka.tsbrowser.ui.composable.main
 
 import android.webkit.WebView
 import com.hinnka.tsbrowser.tab.TabManager

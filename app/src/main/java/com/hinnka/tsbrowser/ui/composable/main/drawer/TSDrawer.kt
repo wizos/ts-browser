@@ -31,16 +31,16 @@ fun TSDrawer(drawerState: BottomDrawerState) {
     }
 
     LazyVerticalGrid(columns = GridCells.Fixed(4), modifier = Modifier.padding(8.dp)) {
-        item { DarkModeItem() }
+        item { DarkModeItem(drawerState) }
         item {
             if (App.isSecretMode) {
                 SecretItem()
             } else {
-                IncognitoItem()
+                IncognitoItem(drawerState)
             }
         }
         item { FindInPageItem(drawerState = drawerState) }
-        item { DesktopItem() }
+        item { DesktopItem(drawerState) }
         item { BookmarksItem() }
         item { HistoryItem() }
         item { DownloadsItem() }

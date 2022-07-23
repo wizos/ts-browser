@@ -12,9 +12,11 @@ import androidx.compose.material.SnackbarHost
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.elvishew.xlog.XLog
+import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ext.removeFromParent
 import com.hinnka.tsbrowser.persist.Settings
@@ -79,6 +81,7 @@ fun Welcome() {
 fun MainView() {
     logD("MainView start")
     val tab = TabManager.currentTab.value
+    val viewModel = LocalViewModel.current
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f)) {
@@ -99,7 +102,7 @@ fun MainView() {
                     }
                 )
                 LongPressPopup()
-                SnackbarHost(modifier = Modifier.align(Alignment.BottomCenter), hostState = AlertBottomSheet.drawerState.snackbarHostState)
+                SnackbarHost(modifier = Modifier.align(Alignment.BottomCenter), hostState = App.snackBarHostState)
             }
 
             NewTabView()

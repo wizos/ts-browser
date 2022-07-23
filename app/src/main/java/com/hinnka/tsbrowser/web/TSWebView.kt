@@ -28,7 +28,7 @@ import com.hinnka.tsbrowser.download.DownloadHandler
 import com.hinnka.tsbrowser.ext.*
 import com.hinnka.tsbrowser.persist.Settings
 import com.hinnka.tsbrowser.ui.base.BaseActivity
-import com.hinnka.tsbrowser.ui.home.LongPressInfo
+import com.hinnka.tsbrowser.ui.composable.main.LongPressInfo
 import com.hinnka.tsbrowser.ui.home.MainActivity
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -48,7 +48,7 @@ class TSWebView @JvmOverloads constructor(
     private val downloadHandler = DownloadHandler(context)
     var dataListener: WebDataListener? = null
 
-    val gestureDetector =
+    private val gestureDetector =
         GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onLongPress(e: MotionEvent) {
                 handleLongPress(e)
@@ -104,8 +104,6 @@ class TSWebView @JvmOverloads constructor(
 
         webChromeClient = TSChromeClient(this)
         webViewClient = TSWebClient(this)
-
-
 
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
     }

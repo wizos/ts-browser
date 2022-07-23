@@ -19,18 +19,24 @@
 
 package com.hinnka.tsbrowser
 
+
+
+const val FILE = "file:///"
+const val PACKAGE = "package:"
+
+val SupportedSchemaWhenLongPress = setOf(Schema.HTTP, Schema.HTTPS, Schema.VIEW_SOURCE)
+
 object Schema {
     const val HTTP = "http://"
     const val HTTPS = "https://"
-    const val FILE = "file://"
-
-    const val PACKAGE = "package:"
     const val VIEW_SOURCE = "view-source:"
+    const val DATA = "data:"
 }
 
 object PackageName {
     const val PLAY = "com.android.vending"
 }
+
 object URL {
     const val GOOGLE = "https://www.google.com"
     const val BAIDU = "https://www.baidu.com"

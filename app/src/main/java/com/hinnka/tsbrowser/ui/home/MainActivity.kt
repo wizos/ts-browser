@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
@@ -97,6 +98,7 @@ open class MainActivity : BaseActivity() {
         logD("Providers start")
         CompositionLocalProvider(
             LocalViewModel provides viewModel,
+            LocalLifecycleOwner provides this,
             content = content
         )
     }
@@ -112,7 +114,6 @@ open class MainActivity : BaseActivity() {
                 WindowInsetsCompat.toWindowInsetsCompat(insets).getInsets(
                     WindowInsetsCompat.Type.ime()
                 )
-            println("高度：" + imeHeight.bottom)
             scope.launch {
                 viewModel.imeHeightState.animateTo(imeHeight.bottom.toFloat())
             }

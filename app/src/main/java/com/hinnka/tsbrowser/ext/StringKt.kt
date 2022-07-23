@@ -17,11 +17,9 @@ import java.security.MessageDigest
 import kotlin.experimental.and
 
 
-fun String.toUrl(): String {
-    if (isUrl()) {
-        return URLUtil.guessUrl(this.trim())
-    }
-    return toSearchUrl()
+fun String.isDataUrl(): Boolean {
+    val inUrl = this.trim()
+    return inUrl.startsWith("data:", true)
 }
 
 fun String.isUrl(): Boolean {
@@ -37,6 +35,13 @@ fun String.isUrl(): Boolean {
         return true
     }
     return false
+}
+
+fun String.toUrl(): String {
+    if (isUrl()) {
+        return URLUtil.guessUrl(this.trim())
+    }
+    return toSearchUrl()
 }
 
 fun String.toSearchUrl(): String {

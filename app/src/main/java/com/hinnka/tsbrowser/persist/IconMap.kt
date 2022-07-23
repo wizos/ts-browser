@@ -16,9 +16,6 @@ import com.hinnka.tsbrowser.ext.host
 import com.hinnka.tsbrowser.ext.ioScope
 import com.hinnka.tsbrowser.ext.logD
 import kotlinx.coroutines.launch
-import zlc.season.rxdownload4.download
-import zlc.season.rxdownload4.file
-import zlc.season.rxdownload4.task.Task
 import java.io.File
 import java.io.FileOutputStream
 

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import com.hinnka.tsbrowser.App
+import com.hinnka.tsbrowser.util.Base64Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -25,6 +26,18 @@ suspend fun Bitmap.encodeToPath(name: String): String? {
             logE("compress bitmap failed", throwable = e)
         }
         return@withContext null
+    }
+}
+
+suspend fun String.dataUrlToBitmap(): Bitmap? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val imageDataString: ByteArray = Base64Utils.getInstance().decode(this@dataUrlToBitmap.substring(this@dataUrlToBitmap.indexOf(",") + 1))
+            BitmapFactory.decodeByteArray(imageDataString, 0, imageDataString.size)
+        } catch (e: Exception) {
+            logE("decode bitmap failed", throwable = e)
+            null
+        }
     }
 }
 

@@ -33,8 +33,9 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun DarkModeItem() {
+fun DarkModeItem(drawerState: BottomDrawerState) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     DrawerItem(
         icon = {
             Icon(
@@ -59,6 +60,9 @@ fun DarkModeItem() {
         } else {
             Settings.darkMode = !Settings.darkMode
             Toast.makeText(context, R.string.dark_unsupport, Toast.LENGTH_SHORT).show()
+        }
+        scope.launch {
+            drawerState.close()
         }
     }
 }
@@ -85,7 +89,8 @@ fun SecretItem() {
 }
 
 @Composable
-fun IncognitoItem() {
+fun IncognitoItem(drawerState: BottomDrawerState) {
+    val scope = rememberCoroutineScope()
     DrawerItem(
         icon = {
             Icon(
@@ -106,6 +111,9 @@ fun IncognitoItem() {
         }
     ) {
         Settings.incognito = !Settings.incognito
+        scope.launch {
+            drawerState.close()
+        }
     }
 }
 
@@ -133,7 +141,8 @@ fun FindInPageItem(drawerState: BottomDrawerState) {
 }
 
 @Composable
-fun DesktopItem() {
+fun DesktopItem(drawerState: BottomDrawerState) {
+    val scope = rememberCoroutineScope()
     DrawerItem(
         icon = {
             Icon(
@@ -153,8 +162,10 @@ fun DesktopItem() {
             )
         }
     ) {
-        Settings.userAgent =
-            if (Settings.userAgentState.value == SettingOptions.userAgentDesktop[0]) Settings.Default.userAgent else SettingOptions.userAgentDesktop[0]
+        Settings.userAgent = if (Settings.userAgentState.value == SettingOptions.userAgentDesktop[0]) Settings.Default.userAgent else SettingOptions.userAgentDesktop[0]
+        scope.launch {
+            drawerState.close()
+        }
     }
 }
 

@@ -98,6 +98,10 @@ class AlertBottomSheet(private val params: Params) {
             params.title = context.getString(res)
         }
 
+        fun setTitle(title: String) {
+            params.title = title
+        }
+
         fun setView(view: @Composable () -> Unit) {
             params.view = view
         }

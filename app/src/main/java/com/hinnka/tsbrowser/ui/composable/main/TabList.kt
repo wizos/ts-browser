@@ -94,16 +94,16 @@ fun TabList() {
                     }
             ) {
                 TabItem(tab = tab, onTap = {
-                    val lastActive = tab.info.isActive
+                    // val lastActive = tab.info.isActive
                     tab.active()
                     if (tab.previewState.value != null) {
-                        if (lastActive) {
+                        // if (lastActive) {
                             hideAnim.value = true
                             targetOffset.value = IntOffset.Zero
                             targetSize.value = IntSize(screenWidth, screenHeight)
-                        } else {
-                            resetAnim.value = true
-                        }
+                        // } else {
+                        //     resetAnim.value = true
+                        // }
                     } else {
                         viewModel.uiState.value = UIState.Main
                     }
