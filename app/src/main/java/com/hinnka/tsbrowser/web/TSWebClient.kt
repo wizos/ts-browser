@@ -56,42 +56,34 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         if (localSchemes.contains(uri.scheme)) {
             return false
         }
-        return try {
-            var intent = Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
-            var componentName = intent.resolveActivity(view.context.packageManager)
-            if (componentName == null) {
-                intent.`package`?.let {
-                    intent = Intent.parseUri("market://search?q=pname:$it", Intent.URI_INTENT_SCHEME)
-                    componentName = intent.resolveActivity(view.context.packageManager)
-                }
+        var intent = Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
+        var componentName = intent.resolveActivity(view.context.packageManager)
+        if (componentName == null) {
+            intent.`package`?.let {
+                intent = Intent.parseUri("market://search?q=pname:$it", Intent.URI_INTENT_SCHEME)
+                componentName = intent.resolveActivity(view.context.packageManager)
             }
-            if (componentName == null) {
-                return false
-            }
-
-            MainScope().launch {
-                when(App.snackBarHostState.showSnackbar(
-                    view.context.getString(R.string.webpage_request_to_launch_x, componentName.getAppName(view.context.packageManager)),
-                    view.context.getString(android.R.string.ok),
-                    SnackbarDuration.Short
-                )){
-                    SnackbarResult.ActionPerformed -> {
-                        try {
-                            view.context.startActivity(intent)
-                        } catch (e: Exception) {
-                            XLog.e(e)
-                        }
-                    }
-                    SnackbarResult.Dismissed -> {
-                        logD("SnackBar 消失")
-                    }
-                }
-            }
-            true
-        } catch (e: Exception) {
-            XLog.e(e)
-            false
         }
+        if (componentName == null) {
+            return true
+        }
+        MainScope().launch {
+            when(App.snackBarHostState.showSnackbar(
+                view.context.getString(R.string.webpage_request_to_launch_x, componentName.getAppName(view.context.packageManager)),
+                view.context.getString(android.R.string.ok),
+                SnackbarDuration.Short
+            )){
+                SnackbarResult.ActionPerformed -> {
+                    try {
+                        view.context.startActivity(intent)
+                    } catch (e: Exception) {
+                        XLog.e(e)
+                    }
+                }
+                else -> {}
+            }
+        }
+        return true
     }
 
     override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {

@@ -25,20 +25,16 @@ import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.BuildConfig
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.Schema
-import com.hinnka.tsbrowser.adblock.Downloader
 import com.hinnka.tsbrowser.download.DownloadHandler
-import com.hinnka.tsbrowser.ext.dataUrlToBitmap
-import com.hinnka.tsbrowser.ext.ioScope
-import com.hinnka.tsbrowser.ext.isUrl
-import com.hinnka.tsbrowser.ext.toUrl
+import com.hinnka.tsbrowser.ext.*
 import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.tab.active
 import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import com.hinnka.tsbrowser.ui.composable.widget.PopupMenu
 import com.hinnka.tsbrowser.util.copy2Pictures
-import com.hinnka.tsbrowser.util.getTypeForImg
 import com.hinnka.tsbrowser.util.savePictures
+import com.hinnka.tsbrowser.util.inject
 import com.king.zxing.util.CodeUtils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -103,6 +99,7 @@ fun LongPressPopup() {
                 if (info.extra.startsWith(Schema.DATA, true)){
                     ShareImageData(info)
                     SaveImageData(info)
+                    // SaveImageData2(info)
                     ParseQRImageData(info)
                 } else {
                     ShareImage(info)
@@ -226,9 +223,86 @@ fun SaveImageData(info: LongPressInfo) {
     DropdownMenuItem(onClick = {
         info.hidePopup()
         ioScope.launch {
+            val bytes:ByteArray? = info.extra.dataUrlToByteArray()
+            val fileType = bytes?.ext() ?: ""
+            if (bytes == null){
+                MainScope().launch {
+                    viewModel.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
+                }
+            }else{
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), System.currentTimeMillis().toString() + fileType)
+                    file.inject(bytes)
+                    MainScope().launch {
+                        viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
+                    }
+                }else{
+                    App.instance.cacheDir?.let {
+                        val file = File(it, System.currentTimeMillis().toString() + fileType)
+                        file.inject(bytes)
+                        if (file.exists()){
+                            copy2Pictures(context, file)
+                            MainScope().launch {
+                                viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
+                            }
+                        }else{
+                            MainScope().launch {
+                                viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_failed))
+                            }
+                        }
+                    }
+                }
+            }
+
+            // val bitmap:Bitmap? = info.extra.dataUrlToBitmap()
+            // if (bitmap == null){
+            //     MainScope().launch {
+            //         viewModel.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
+            //     }
+            // }else{
+            //     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            //         val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), System.currentTimeMillis().toString())
+            //         savePictures(file, bitmap)
+            //         if (file.exists()){
+            //             file.ext()?.let { ext ->
+            //                 file.renameTo(File(file.absolutePath + ext))
+            //             }
+            //         }
+            //     }else{
+            //         App.instance.cacheDir?.let {
+            //             val file = File(it, System.currentTimeMillis().toString())
+            //             savePictures(file, bitmap)
+            //             if (file.exists()){
+            //                 file.ext()?.let { ext ->
+            //                     file.renameTo(File(file.absolutePath + ext))
+            //                 }
+            //                 copy2Pictures(context, file)
+            //                 MainScope().launch {
+            //                     viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
+            //                 }
+            //             }else{
+            //                 MainScope().launch {
+            //                     viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_failed))
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+        }
+    }) {
+        Text(text = stringResource(id = R.string.download_image)+ "-新")
+    }
+}
+
+@Composable
+fun SaveImageData2(info: LongPressInfo) {
+    val context = LocalContext.current
+    val viewModel = LocalViewModel.current
+    DropdownMenuItem(onClick = {
+        info.hidePopup()
+        ioScope.launch {
             val bitmap:Bitmap? = info.extra.dataUrlToBitmap()
             if (bitmap == null){
-                // Toast.makeText(context, context.getString(R.string.the_image_is_abnormal), Toast.LENGTH_LONG).show()
                 MainScope().launch {
                     viewModel.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
                 }
@@ -237,7 +311,7 @@ fun SaveImageData(info: LongPressInfo) {
                     val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), System.currentTimeMillis().toString())
                     savePictures(file, bitmap)
                     if (file.exists()){
-                        file.getTypeForImg()?.let { ext ->
+                        file.ext()?.let { ext ->
                             file.renameTo(File(file.absolutePath + ext))
                         }
                     }
@@ -246,16 +320,14 @@ fun SaveImageData(info: LongPressInfo) {
                         val file = File(it, System.currentTimeMillis().toString())
                         savePictures(file, bitmap)
                         if (file.exists()){
-                            file.getTypeForImg()?.let { ext ->
+                            file.ext()?.let { ext ->
                                 file.renameTo(File(file.absolutePath + ext))
                             }
                             copy2Pictures(context, file)
-                            // Toast.makeText(context, context.getString(R.string.download_succeeded), Toast.LENGTH_LONG).show()
                             MainScope().launch {
                                 viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
                             }
                         }else{
-                            // Toast.makeText(context, context.getString(R.string.download_failed), Toast.LENGTH_LONG).show()
                             MainScope().launch {
                                 viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_failed))
                             }
@@ -265,7 +337,7 @@ fun SaveImageData(info: LongPressInfo) {
             }
         }
     }) {
-        Text(text = stringResource(id = R.string.download_image))
+        Text(text = stringResource(id = R.string.download_image) + "-老")
     }
 }
 @Composable
@@ -305,7 +377,7 @@ fun ShareImageData(info: LongPressInfo) {
                     val file = File(it, System.currentTimeMillis().toString())
                     savePictures(file, bitmap)
                     if (file.exists()){
-                        file.getTypeForImg()?.let { ext ->
+                        file.ext()?.let { ext ->
                             file.renameTo(File(file.absolutePath + ext))
                         }
                         viewModel.share(file)

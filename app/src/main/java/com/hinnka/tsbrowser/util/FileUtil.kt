@@ -103,6 +103,50 @@ fun savePictures(destFile: File, bmp: Bitmap): File? {
     return destFile
 }
 
+fun File.inject(bmp: Bitmap): File? {
+    this.parentFile?.let {
+        if (!it.exists()){
+            if (!it.mkdirs()) {
+                return null
+            }
+        }
+    }
+
+    try {
+        val fos = FileOutputStream(this)
+        bmp.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+        fos.flush()
+        fos.close()
+    } catch (e: IOException) {
+        XLog.e("保存到相册错误")
+        e.printStackTrace()
+        return null
+    }
+    return this
+}
+
+fun File.inject(bmp: ByteArray): File? {
+    this.parentFile?.let {
+        if (!it.exists()){
+            if (!it.mkdirs()) {
+                return null
+            }
+        }
+    }
+
+    try {
+        val fos = FileOutputStream(this)
+        fos.write(bmp)
+        fos.flush()
+        fos.close()
+    } catch (e: IOException) {
+        XLog.e("保存到相册错误")
+        e.printStackTrace()
+        return null
+    }
+    return this
+}
+
 
 fun savePictures(mContext: Context, fileUri: Uri, bmp: Bitmap): Uri? {
     // android Q
@@ -163,43 +207,35 @@ fun copy2Pictures(mContext: Context, oriFile:File){
     }
 }
 
-fun File.getTypeForImg(): String? {
-    return try {
-        val fis = FileInputStream(this)
-        val src = ByteArray(28)
-        fis.read(src, 0, 28)
-        val stringBuilder = StringBuilder("")
-        for (b in src) {
-            val v: Byte = b and 0xFF.toByte()
-            val hv = Integer.toHexString(v.toInt()).uppercase()
-            if (hv.length < 2) {
-                stringBuilder.append(0)
+@RequiresApi(Build.VERSION_CODES.Q)
+fun copy2PublicDir(mContext: Context, oriFile:File, dir:String){
+    val values = ContentValues()
+    values.put(MediaStore.Files.FileColumns.DISPLAY_NAME, oriFile.name)
+    values.put(MediaStore.Files.FileColumns.TITLE, oriFile.name)
+    values.put(MediaStore.Files.FileColumns.RELATIVE_PATH, dir)
+
+    val resolver: ContentResolver = mContext.contentResolver
+    val insertUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+    var ist: InputStream? = null
+    var ost: OutputStream? = null
+    try {
+        ist = FileInputStream(oriFile)
+        if (insertUri != null) {
+            ost = resolver.openOutputStream(insertUri)
+        }
+        if (ost != null) {
+            val buffer = ByteArray(4096)
+            var byteCount = 0
+            while (ist.read(buffer).also { byteCount = it } != -1) {
+                ost.write(buffer, 0, byteCount)
             }
-            stringBuilder.append(hv)
         }
-        val fileHeader = stringBuilder.toString()
-        if (fileHeader.startsWith("FFD8FF")) {
-            return ".jpeg"
-        }
-        if (fileHeader.startsWith("89504E47")) {
-            return ".png"
-        }
-        if (fileHeader.startsWith("47494638")) {
-            return ".gif"
-        }
-        if (fileHeader.startsWith("3C73766720")) {
-            return ".svg"
-        }
-        if (fileHeader.startsWith("424D")) {
-            return ".bmp"
-        }
-        if (fileHeader.startsWith("52494646")) {
-            return ".webp"
-        }
-        if (fileHeader.startsWith("49492A00")) {
-            ".tiff"
-        } else null
     } catch (e: IOException) {
-        null
+    } finally {
+        try {
+            ist?.close()
+            ost?.close()
+        } catch (e: IOException) {
+        }
     }
 }

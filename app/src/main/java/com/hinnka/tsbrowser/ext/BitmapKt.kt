@@ -29,6 +29,17 @@ suspend fun Bitmap.encodeToPath(name: String): String? {
     }
 }
 
+suspend fun String.dataUrlToByteArray(): ByteArray? {
+    return withContext(Dispatchers.IO) {
+        try {
+            Base64Utils.getInstance().decode(this@dataUrlToByteArray.substring(this@dataUrlToByteArray.indexOf(",") + 1))
+        } catch (e: Exception) {
+            logE("decode bitmap failed", throwable = e)
+            null
+        }
+    }
+}
+
 suspend fun String.dataUrlToBitmap(): Bitmap? {
     return withContext(Dispatchers.IO) {
         try {

@@ -20,16 +20,20 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
+import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.R
-import com.hinnka.tsbrowser.ext.logD
-import com.hinnka.tsbrowser.ext.mimeType
+import com.hinnka.tsbrowser.ext.*
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import com.hinnka.tsbrowser.ui.base.BaseActivity
+import com.hinnka.tsbrowser.util.copy2Pictures
+import com.hinnka.tsbrowser.util.copy2PublicDir
 import com.hinnka.tsbrowser.util.getSaveableName
+import com.hinnka.tsbrowser.util.inject
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import zlc.season.rxdownload4.RANGE_CHECK_HEADER
 import zlc.season.rxdownload4.file
 import zlc.season.rxdownload4.manager.*
-import zlc.season.rxdownload4.recorder.RoomRecorder
 import zlc.season.rxdownload4.task.Task
 import java.io.File
 import java.io.FileInputStream
@@ -55,28 +59,37 @@ class DownloadHandler(val context: Context) : DownloadListener {
         mimetype: String?,
         contentLength: Long
     ) {
+        XLog.d("下载：$url, $userAgent, $contentDisposition, $mimetype, $contentLength")
         if (tryOpenStream(url, contentDisposition, mimetype)) {
             return
         }
 
-        val guessName = getFileName(url, contentDisposition, mimetype)
-        val downloadSize = if (contentLength > 0) {
-            formatFileSize(context, contentLength)
-        } else {
-            context.getString(R.string.unknown_size)
-        }
+        ioScope.launch {
+            // val guessName = getFileName(url, contentDisposition, mimetype)
+            val guessName:String = if(url.isDataUrl()){
+                System.currentTimeMillis().toString() + url.dataUrlToByteArray()?.ext()
+            }else{
+                getFileName(url, contentDisposition, mimetype)
+            }
 
-        requestPermissionIfNeeded {
-            AlertBottomSheet.Builder(context).apply {
-                setMessage(context.getString(R.string.download_message, guessName, downloadSize))
-                setPositiveButton(android.R.string.ok) {
-                    try {
-                        download(url, guessName, mimetype)
-                    } catch (e: Exception) {
+            val downloadSize = if (contentLength > 0) {
+                formatFileSize(context, contentLength)
+            } else {
+                context.getString(R.string.unknown_size)
+            }
+
+            requestPermissionIfNeeded {
+                AlertBottomSheet.Builder(context).apply {
+                    setMessage(context.getString(R.string.download_message, guessName, downloadSize))
+                    setPositiveButton(android.R.string.ok) {
+                        try {
+                            download(url, guessName, mimetype)
+                        } catch (e: Exception) {
+                        }
                     }
-                }
-                setNegativeButton(android.R.string.cancel) {}
-            }.show()
+                    setNegativeButton(android.R.string.cancel) {}
+                }.show()
+            }
         }
     }
 
@@ -223,6 +236,42 @@ class DownloadHandler(val context: Context) : DownloadListener {
     }
 
     private fun download(url: String, guessName: String, mimetype: String?) {
+        if(url.isDataUrl()){
+            ioScope.launch {
+                val bitmap:ByteArray? = url.dataUrlToByteArray()
+                val fileType = bitmap?.ext() ?: ""
+                if (bitmap != null){
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), guessName + fileType)
+                        file.inject(bitmap)
+                        MainScope().launch {
+                            App.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
+                        }
+                    }else{
+                        App.instance.cacheDir?.let {
+                            val file = File(it, guessName + fileType)
+                            file.inject(bitmap)
+                            if (file.exists()){
+                                copy2PublicDir(context, file, Environment.DIRECTORY_DOWNLOADS)
+                                MainScope().launch {
+                                    App.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
+                                }
+                            }else{
+                                MainScope().launch {
+                                    App.snackBarHostState.showSnackbar(context.getString(R.string.download_failed))
+                                }
+                            }
+                        }
+                    }
+                }else{
+                    MainScope().launch {
+                        App.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
+                    }
+                }
+            }
+            return
+        }
+
         val headerMap = RANGE_CHECK_HEADER.toMutableMap()
         val cookie = CookieManager.getInstance().getCookie(url)
         if (!cookie.isNullOrEmpty()) {

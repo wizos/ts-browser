@@ -331,7 +331,7 @@ class TSWebView @JvmOverloads constructor(
     }
 
     override fun onPageFinished(url: String) {
-        evaluateJavascript(bridgeJs, null)
+        // evaluateJavascript(bridgeJs, null)
     }
 
     override fun doUpdateVisitedHistory(url: String, isReload: Boolean) {
@@ -343,10 +343,10 @@ class TSWebView @JvmOverloads constructor(
     }
 
     companion object {
-        val bridgeJs: String by lazy {
-            App.instance.assets.open("tsbridge.js").use {
-                BufferedReader(InputStreamReader(it)).readText()
-            }
-        }
+        // val bridgeJs: String by lazy {
+        //     App.instance.assets.open("tsbridge.js").use {
+        //         BufferedReader(InputStreamReader(it)).readText()
+        //     }
+        // }
     }
 }
