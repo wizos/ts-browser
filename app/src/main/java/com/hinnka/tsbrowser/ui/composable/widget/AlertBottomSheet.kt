@@ -55,6 +55,17 @@ class AlertBottomSheet(private val params: Params) {
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
                 ) {
+                    if (params.neutralString.isNotBlank()) {
+                        TextButton(onClick = {
+                            params.neutralBlock()
+                            scope.launch {
+                                drawerState.close()
+                            }
+                        }) {
+                            Text(text = params.neutralString, color = MaterialTheme.colors.onSurface)
+                        }
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
                     if (params.negativeString.isNotBlank()) {
                         TextButton(onClick = {
                             params.negativeBlock()
@@ -88,6 +99,8 @@ class AlertBottomSheet(private val params: Params) {
         var positiveBlock: () -> Unit = {},
         var negativeString: String = "",
         var negativeBlock: () -> Unit = {},
+        var neutralString: String = "",
+        var neutralBlock: () -> Unit = {},
         var cancelable: Boolean = false,
     )
 
@@ -124,6 +137,10 @@ class AlertBottomSheet(private val params: Params) {
             params.negativeBlock = block
         }
 
+        fun setNeutralButton(@StringRes res: Int, block: () -> Unit = {}) {
+            params.neutralString = context.getString(res)
+            params.neutralBlock = block
+        }
         fun setCancelable(cancelable: Boolean) {
             params.cancelable = cancelable
         }

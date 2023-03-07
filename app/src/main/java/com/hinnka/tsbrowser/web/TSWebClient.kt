@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.elvishew.xlog.XLog
+import com.google.gson.Gson
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.adblock.AdBlocker
@@ -42,7 +43,7 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
     private var sslLastAllow = false
     private var sslLastTime = 0L
 
-    private val interceptUrls = mutableListOf<String>()
+    private val interceptUrls = mutableSetOf<String>()
 
     /**
      * @return
@@ -53,6 +54,7 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         val uri = request.url
 
+        XLog.e("shouldOverrideUrlLoading ${uri}")
         if (localSchemes.contains(uri.scheme)) {
             return false
         }
@@ -96,12 +98,15 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
 
     override fun onLoadResource(view: WebView, url: String) {
         super.onLoadResource(view, url)
+        // XLog.e("onLoadResource $url")
     }
 
+    private val gson = Gson()
     override fun shouldInterceptRequest(
         view: WebView,
         request: WebResourceRequest
     ): WebResourceResponse? {
+        XLog.e("shouldInterceptRequest ${request.url} " + gson.toJson(request))
         val host = request.url?.host ?: return null
         if (AdBlocker.shouldBlock(host)) {
             if (!interceptUrls.contains(host)) {
@@ -113,6 +118,25 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         return null
     }
 
+    override fun onReceivedError(
+        view: WebView?,
+        errorCode: Int,
+        description: String?,
+        failingUrl: String?
+    ) {
+        XLog.e("onReceivedError 1 ")
+        super.onReceivedError(view, errorCode, description, failingUrl)
+    }
+
+    override fun onReceivedError(
+        view: WebView?,
+        request: WebResourceRequest?,
+        error: WebResourceError?
+    ) {
+        XLog.e("onReceivedError 2 ")
+        super.onReceivedError(view, request, error)
+    }
+
     override fun onReceivedHttpError(
         view: WebView,
         request: WebResourceRequest,
@@ -121,26 +145,17 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         XLog.e("http error ${request.url} ->${response.statusCode}: ${response.reasonPhrase}")
     }
 
-    override fun onFormResubmission(view: WebView, dontResend: Message, resend: Message) {
-        AlertBottomSheet.Builder(view.context).apply {
-            setTitle(R.string.form_resubmission)
-            setMessage(R.string.resend_data)
-            setCancelable(false)
-            setPositiveButton(android.R.string.yes) {
-                resend.sendToTarget()
-            }
-            setNegativeButton(android.R.string.no) {
-                dontResend.sendToTarget()
-            }
-        }.show()
-    }
-
-    override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
-        controller.doUpdateVisitedHistory(url, isReload)
-    }
-
+    /**
+     * 通知主程序处理SSL客户端认证请求。如果需要提供密钥，主程序负责显示UI界面。
+     * 有三个响应方法：proceed(), cancel() 和 ignore()。
+     * 如果调用proceed()和cancel()，webview将会记住response，
+     * 对相同的host和port地址不再调用 onReceivedClientCertRequest 方法。
+     * 如果调用ignore()方法，webview则不会记住response。该方法在UI线程中执行，
+     * 在回调期间，连接被挂起。默认cancel()，即无客户端认证
+     */
     @SuppressLint("WebViewClientOnReceivedSslError")
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
+        XLog.e("onReceivedSslError ")
         if (System.currentTimeMillis() - sslLastTime <= sslKeepLastDuration) {
             if (sslLastAllow) {
                 handler.proceed()
@@ -166,7 +181,45 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
     }
 
     override fun onReceivedClientCertRequest(view: WebView?, request: ClientCertRequest?) {
-        super.onReceivedClientCertRequest(view, request)
+        XLog.e("onReceivedClientCertRequest ${request?.host}  ${request?.keyTypes}  ${request?.principals}")
+
+        // val prefs = view?.context?.prefs
+        // if (prefs.isDemoModeEnabled()) {
+        //     request.cancel()
+        //     return
+        // }
+        //
+        // val serverId = prefs.getActiveServerId()
+        // val alias = prefs.getStringOrNull(PrefKeys.buildServerKey(serverId, PrefKeys.SSL_CLIENT_CERT_PREFIX))
+        // Log.d(TAG, "Using alias $alias")
+        // if (alias == null) {
+        //     request.cancel()
+        //     return
+        // }
+        //
+        // GlobalScope.launch(Dispatchers.IO) {
+        //     try {
+        //         val chain = KeyChain.getCertificateChain(view.context, alias)
+        //         val privateKey = KeyChain.getPrivateKey(view.context, alias)
+        //         request.proceed(privateKey, chain)
+        //     } catch (e: KeyChainException) {
+        //         Log.d(TAG, "Error getting certificate chain or private key", e)
+        //         request.ignore()
+        //     } catch (e: InterruptedException) {
+        //         Log.d(TAG, "Error getting certificate chain or private key", e)
+        //         request.ignore()
+        //     }
+        // }
+    }
+
+    override fun onReceivedLoginRequest(
+        view: WebView,
+        realm: String?,
+        account: String?,
+        args: String?
+    ) {
+        XLog.e("onReceivedLoginRequest ${realm}")
+        super.onReceivedLoginRequest(view, realm, account, args)
     }
 
     override fun onReceivedHttpAuthRequest(
@@ -175,6 +228,7 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         host: String,
         realm: String
     ) {
+        XLog.e("onReceivedHttpAuthRequest ${realm}")
         var user by mutableStateOf("")
         var password by mutableStateOf("")
         AlertBottomSheet.Builder(view.context).apply {
@@ -203,6 +257,25 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         }.show()
     }
 
+    override fun onFormResubmission(view: WebView, dontResend: Message, resend: Message) {
+        XLog.e("onFormResubmission ${resend.target}")
+        AlertBottomSheet.Builder(view.context).apply {
+            setTitle(R.string.form_resubmission)
+            setMessage(R.string.resend_data)
+            setCancelable(false)
+            setPositiveButton(android.R.string.yes) {
+                resend.sendToTarget()
+            }
+            setNegativeButton(android.R.string.no) {
+                dontResend.sendToTarget()
+            }
+        }.show()
+    }
+
+    override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
+        controller.doUpdateVisitedHistory(url, isReload)
+    }
+
     override fun shouldOverrideKeyEvent(view: WebView?, event: KeyEvent?): Boolean {
         return super.shouldOverrideKeyEvent(view, event)
     }
@@ -213,15 +286,6 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
 
     override fun onScaleChanged(view: WebView?, oldScale: Float, newScale: Float) {
         super.onScaleChanged(view, oldScale, newScale)
-    }
-
-    override fun onReceivedLoginRequest(
-        view: WebView?,
-        realm: String?,
-        account: String?,
-        args: String?
-    ) {
-        super.onReceivedLoginRequest(view, realm, account, args)
     }
 
     override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail?): Boolean {

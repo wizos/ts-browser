@@ -27,7 +27,7 @@ fun TSDrawer(drawerState: BottomDrawerState) {
         BackButton()
         ForwardButton()
         AddBookmarkButton(drawerState = drawerState)
-        ShareButton()
+        ShareButton(drawerState = drawerState)
     }
 
     LazyVerticalGrid(columns = GridCells.Fixed(4), modifier = Modifier.padding(8.dp)) {

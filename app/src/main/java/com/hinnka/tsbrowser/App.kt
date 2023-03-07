@@ -23,6 +23,8 @@ import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ext.logE
 import com.hinnka.tsbrowser.persist.Bookmark
 import com.hinnka.tsbrowser.persist.Favorites
+import com.hinnka.tsbrowser.persist.Settings
+import com.tencent.mmkv.MMKV
 import io.reactivex.plugins.RxJavaPlugins
 import zlc.season.rxdownload4.recorder.RxDownloadRecorder
 import java.lang.reflect.InvocationTargetException
@@ -34,7 +36,8 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        initLog();
+        MMKV.initialize(this)
+        initLog()
         XLog.d("$processName onCreate")
         configWebViewCacheDirWithAndroidP()
         RxJavaPlugins.setErrorHandler {
@@ -45,6 +48,16 @@ class App : Application() {
         })
         initBrowser()
         if(BuildConfig.DEBUG) ZKeepAlive.instance.register(this)
+
+        if (Settings.keepAlive) {
+            ZKeepAlive.instance.register(this)
+        } else {
+            ZKeepAlive.instance.unRegister(this)
+        }
+
+        // DoKit.Builder(this)
+        //     // .productId(BuildConfig.DORAEMON_KIT_PRODUCT_ID)
+        //     .build()
 
         RxDownloadRecorder
         XLog.d("$processName onCreate complete")

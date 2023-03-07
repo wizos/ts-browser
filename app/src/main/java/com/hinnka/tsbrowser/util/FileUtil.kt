@@ -103,7 +103,7 @@ fun savePictures(destFile: File, bmp: Bitmap): File? {
     return destFile
 }
 
-fun File.inject(bmp: Bitmap): File? {
+fun File.save(bmp: Bitmap): File? {
     this.parentFile?.let {
         if (!it.exists()){
             if (!it.mkdirs()) {
@@ -125,7 +125,7 @@ fun File.inject(bmp: Bitmap): File? {
     return this
 }
 
-fun File.inject(bmp: ByteArray): File? {
+fun File.save(bmp: ByteArray): File? {
     this.parentFile?.let {
         if (!it.exists()){
             if (!it.mkdirs()) {

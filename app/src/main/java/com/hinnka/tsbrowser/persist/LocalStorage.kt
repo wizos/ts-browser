@@ -4,13 +4,17 @@ import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
+import com.google.gson.Gson
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.ext.asMutable
+import com.tencent.mmkv.MMKV
 import java.util.concurrent.TimeUnit
 
 object LocalStorage {
-    private val pref = App.instance.getSharedPreferences("localStorage.${App.processName}", Context.MODE_PRIVATE)
-    private val prefGlobal = App.instance.getSharedPreferences("localStorage", Context.MODE_PRIVATE)
+    // private val pref = App.instance.getSharedPreferences("localStorage.${App.processName}", Context.MODE_PRIVATE)
+    // private val prefGlobal = App.instance.getSharedPreferences("localStorage", Context.MODE_PRIVATE)
+    private val pref by lazy { MMKV.mmkvWithID("localStorage.${App.processName}") }
+    private val prefGlobal by lazy { MMKV.mmkvWithID("localStorage") }
 
     var isFavoriteInitialized
         get() = pref.getBoolean("isFavoriteInitialized", false)

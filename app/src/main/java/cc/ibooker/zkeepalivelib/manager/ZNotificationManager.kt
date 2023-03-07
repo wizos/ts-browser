@@ -25,7 +25,7 @@ class ZNotificationManager private constructor() {
     fun getNotification(context: Context, channelId: String,channelName: String, contentTitle: String): Notification {
         val applicationContext = context.applicationContext
         val builder = NotificationCompat.Builder(applicationContext, channelId)
-            .setContentIntent(PendingIntent.getActivity(applicationContext, 0, Intent(), 0))// 设置PendingIntent
+            .setContentIntent(PendingIntent.getActivity(applicationContext, 0, Intent(), PendingIntent.FLAG_IMMUTABLE))// 设置PendingIntent
             .setSmallIcon(R.mipmap.ic_launcher)// 设置状态栏内的小图标
             .setContentTitle(contentTitle)// 标题
             .setWhen(System.currentTimeMillis())

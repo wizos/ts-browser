@@ -32,7 +32,11 @@ fun AddFolder(parentBookmark: Bookmark) {
     val selectedFolder = remember {
         mutableStateOf(parentBookmark)
     }
-    Scaffold(topBar = {
+    Scaffold(
+        modifier = Modifier
+            .imePadding()
+            .navigationBarsPadding(),
+        topBar = {
         TSAppBar(title = stringResource(id = R.string.add_folder), actions = {
             IconButton(onClick = {
                 if (title.value.text.isNotBlank()) {

@@ -15,11 +15,14 @@ import com.hinnka.tsbrowser.ext.removeFromParent
 import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.tab.active
 import com.hinnka.tsbrowser.web.TSWebView
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 
 object Settings {
-    private val pref = App.instance.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    private val gson = Gson()
+    // private val pref = App.instance.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    // private val gson = Gson()
+    private val pref by lazy { MMKV.mmkvWithID("settings") }
+    private val gson by lazy { Gson() }
 
     object Default {
         val searchEngine = if (App.isCN) {
@@ -39,6 +42,13 @@ object Settings {
             pref.edit { putBoolean("darkMode", value) }
             darkModeState.asMutable().value = value
             TabManager.currentTab.value?.view?.setDarkMode(value)
+        }
+
+    var keepAlive: Boolean
+        get() = pref.getBoolean("enable_keep_alive", false)
+        set(value) {
+            pref.putBoolean("enable_keep_alive" ,value)
+            keepAliveState.asMutable().value = value
         }
 
     var incognito: Boolean
@@ -137,6 +147,7 @@ object Settings {
     val acceptThirdPartyCookiesState: State<Boolean> = mutableStateOf(acceptThirdPartyCookies)
     val dntState: State<Boolean> = mutableStateOf(dnt)
     val darkModeState: State<Boolean> = mutableStateOf(darkMode)
+    val keepAliveState: State<Boolean> = mutableStateOf(keepAlive)
     val incognitoState: State<Boolean> = mutableStateOf(incognito)
 }
 

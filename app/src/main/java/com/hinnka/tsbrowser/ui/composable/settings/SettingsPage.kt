@@ -13,6 +13,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleEventObserver
 import com.hinnka.tsbrowser.App
+import com.hinnka.tsbrowser.BuildConfig
 import com.hinnka.tsbrowser.PackageName
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.URL
@@ -70,7 +72,10 @@ fun SettingsPage() {
         }
     }
 
-    TSBottomDrawer(drawerState = state) {
+    TSBottomDrawer(
+        modifier = Modifier
+            .imePadding()
+            .navigationBarsPadding(), drawerState = state) {
         Column(Modifier.background(MaterialTheme.colors.surface)) {
             TSAppBar(title = stringResource(id = R.string.settings))
             Column(
@@ -275,6 +280,26 @@ fun SettingsPage() {
                         )
                     }
                 )
+                ListItem(
+                    secondaryText = {
+                        Text(
+                            text = if (Settings.keepAliveState.value) {
+                                stringResource(id = R.string.on)
+                            } else {
+                                stringResource(id = R.string.off)
+                            }
+                        )
+                    },
+                    text = { Text(text = stringResource(id = R.string.setting_enable_keep_alive)) },
+                    trailing = {
+                        Switch(
+                            checked = Settings.keepAliveState.value,
+                            onCheckedChange = {
+                                Settings.keepAlive = it
+                            }
+                        )
+                    }
+                )
                 Text(
                     text = stringResource(id = R.string.about),
                     modifier = Modifier.padding(16.dp),
@@ -337,6 +362,12 @@ fun SettingsPage() {
                         )
                     }
                 )
+                if (BuildConfig.DEBUG){
+                    ListItem(
+                        modifier = Modifier.clickable { },
+                        text = { Text(text = stringResource(id = R.string.lab), modifier = Modifier.align(Alignment.CenterHorizontally), color = Color.Red) }
+                    )
+                }
             }
         }
     }

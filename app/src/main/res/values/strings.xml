@@ -66,18 +66,20 @@
     <string name="general">General</string>
     <string name="search_engine">Search engine</string>
     <string name="clear_browse_data">Clear data</string>
-    <string name="clear_browse_data_hint">Clear history, cookies...</string>
+    <string name="clear_browse_data_hint">Clear history, cookies…</string>
     <string name="user_agent">User agent</string>
     <string name="adblock">Adblock</string>
     <string name="privacy">Privacy</string>
-    <string name="accept_thirdparty_cookie">Accept thirdparty cookies</string>
+    <string name="accept_thirdparty_cookie">Accept third party cookies</string>
     <string name="dnt">Do Not Track</string>
+    <string name="setting_enable_keep_alive">Reduce the probability of application being killed</string>
     <string name="about">About</string>
     <string name="version">Version</string>
     <string name="update">Check update</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="terms_of_service">Terms of service</string>
     <string name="feedback">Feedback</string>
+    <string name="lab">Lab</string>
     <string name="off">Off</string>
     <string name="on">On</string>
     <string name="clear_cookies">Clear cookies</string>
@@ -115,4 +117,12 @@
     <string name="set_default_browser">Set as default browser</string>
     <string name="other">Other</string>
     <string name="webpage_request_to_launch_x">Webpage request to launch "%1$s"</string>
+    <string name="open_by_outer">Open by outer</string>
+    <string name="flashlight">Flashlight</string>
+    <string name="photo_album">Photo album</string>
+    <string name="download">Download</string>
+    <string name="download_fail">Download fail</string>
+    <string name="download_success">Download success</string>
+
+    <string name="dokit" translatable="false">Dokit</string>
 </resources>

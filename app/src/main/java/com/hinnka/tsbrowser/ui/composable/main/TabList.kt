@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -17,14 +18,12 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -33,10 +32,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.ext.host
 import com.hinnka.tsbrowser.ext.tap
 import com.hinnka.tsbrowser.persist.IconMap
@@ -63,12 +60,45 @@ fun TabList() {
     val resetAnim = remember { mutableStateOf(false) }
     val listState = rememberLazyGridState()
     val statusBarHeight = statusBarHeight()
+    // val listState2 = rememberLazyListState()
+    //
+    // var position by remember {
+    //     mutableStateOf<Float?>(null)
+    // }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .background(MaterialTheme.colors.surface)
-            .fillMaxSize(),
+            .fillMaxSize()
+            // .pointerInput(Unit) {
+            //     detectDragGesturesAfterLongPress(
+            //         onDrag = {change, dragAmount ->
+            //         },
+            //         onDragStart = {offset ->
+            //             listState.layoutInfo.visibleItemsInfo
+            //                 .firstOrNull { offset.y.toInt() in it.offset.y..(it.offset.x + it.size.height) }
+            //                 ?.also {
+            //                     position = it.offset.y + it.size.height / 2f
+            //                 }
+            //
+            //             listState2.layoutInfo.visibleItemsInfo
+            //                 .firstOrNull { offset.y.toInt() in it.offset..it.offset + it.size }
+            //                 ?.also {
+            //                     position = it.offset + it.size / 2f
+            //                 }
+            //         },
+            //         onDragEnd = {
+            //             isLong = false
+            //             Log.d("senl", "onDragEnd")
+            //         },
+            //         onDragCancel = {
+            //             isLong = false
+            //             Log.d("senl", "onDragEnd")
+            //         }
+            //     )
+            // }
+                ,
         state = listState,
         verticalArrangement = Arrangement.Bottom,
         contentPadding = PaddingValues(8.dp),
@@ -94,16 +124,12 @@ fun TabList() {
                     }
             ) {
                 TabItem(tab = tab, onTap = {
-                    // val lastActive = tab.info.isActive
+                    val tab = tabs[it]
                     tab.active()
                     if (tab.previewState.value != null) {
-                        // if (lastActive) {
-                            hideAnim.value = true
-                            targetOffset.value = IntOffset.Zero
-                            targetSize.value = IntSize(screenWidth, screenHeight)
-                        // } else {
-                        //     resetAnim.value = true
-                        // }
+                        hideAnim.value = true
+                        targetOffset.value = IntOffset.Zero
+                        targetSize.value = IntSize(screenWidth, screenHeight)
                     } else {
                         viewModel.uiState.value = UIState.Main
                     }

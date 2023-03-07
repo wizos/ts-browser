@@ -37,7 +37,11 @@ fun EditBookmark(bookmark: Bookmark) {
     val selectedFolder = remember {
         mutableStateOf(bookmark.parent ?: Bookmark.root)
     }
-    Scaffold(topBar = {
+    Scaffold(
+        modifier = Modifier
+            .imePadding()
+            .navigationBarsPadding(),
+        topBar = {
         TSAppBar(title = stringResource(id = R.string.edit_bookmark), actions = {
             IconButton(onClick = {
                 if (title.value.text.isNotBlank()) {

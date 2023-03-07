@@ -1,5 +1,6 @@
 package com.hinnka.tsbrowser.ui.composable.main
 
+import android.graphics.Bitmap
 import android.webkit.WebView
 import com.hinnka.tsbrowser.tab.TabManager
 
@@ -8,7 +9,8 @@ data class LongPressInfo(
     val xOffset: Int = 0,
     val yOffset: Int = 0,
     val type: Int = WebView.HitTestResult.UNKNOWN_TYPE,
-    val extra: String = ""
+    val extra: String = "",
+    var preview: Bitmap? = null
 )
 
 fun LongPressInfo.hidePopup() {

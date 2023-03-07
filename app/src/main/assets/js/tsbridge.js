@@ -20,7 +20,7 @@
         };
     }
     screenOrientation.setOrientation = function (orientation) {
-        TSBridge.requestScreenOrientation(orientation)
+        LoreadBridge.requestScreenOrientation(orientation)
     };
 
     if (!screen.orientation) {

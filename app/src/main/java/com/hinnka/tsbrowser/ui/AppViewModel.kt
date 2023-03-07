@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.webkit.CookieManager
@@ -33,12 +32,10 @@ import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.ui.home.SecretActivity
 import com.hinnka.tsbrowser.ui.home.UIState
 import com.hinnka.tsbrowser.util.DeviceUtil
-import com.hinnka.tsbrowser.util.savePictures
-import com.king.zxing.CaptureActivity
+// import com.king.zxing.CaptureActivity
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
 import java.util.concurrent.TimeUnit
 

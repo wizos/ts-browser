@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Environment
 import android.os.Parcelable
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -33,8 +32,8 @@ import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import com.hinnka.tsbrowser.ui.composable.widget.PopupMenu
 import com.hinnka.tsbrowser.util.copy2Pictures
+import com.hinnka.tsbrowser.util.save
 import com.hinnka.tsbrowser.util.savePictures
-import com.hinnka.tsbrowser.util.inject
 import com.king.zxing.util.CodeUtils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -229,117 +228,34 @@ fun SaveImageData(info: LongPressInfo) {
                 MainScope().launch {
                     viewModel.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
                 }
-            }else{
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), System.currentTimeMillis().toString() + fileType)
-                    file.inject(bytes)
-                    MainScope().launch {
-                        viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
-                    }
-                }else{
-                    App.instance.cacheDir?.let {
-                        val file = File(it, System.currentTimeMillis().toString() + fileType)
-                        file.inject(bytes)
-                        if (file.exists()){
-                            copy2Pictures(context, file)
-                            MainScope().launch {
-                                viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
-                            }
-                        }else{
-                            MainScope().launch {
-                                viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_failed))
-                            }
-                        }
-                    }
-                }
-            }
-
-            // val bitmap:Bitmap? = info.extra.dataUrlToBitmap()
-            // if (bitmap == null){
-            //     MainScope().launch {
-            //         viewModel.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
-            //     }
-            // }else{
-            //     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            //         val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), System.currentTimeMillis().toString())
-            //         savePictures(file, bitmap)
-            //         if (file.exists()){
-            //             file.ext()?.let { ext ->
-            //                 file.renameTo(File(file.absolutePath + ext))
-            //             }
-            //         }
-            //     }else{
-            //         App.instance.cacheDir?.let {
-            //             val file = File(it, System.currentTimeMillis().toString())
-            //             savePictures(file, bitmap)
-            //             if (file.exists()){
-            //                 file.ext()?.let { ext ->
-            //                     file.renameTo(File(file.absolutePath + ext))
-            //                 }
-            //                 copy2Pictures(context, file)
-            //                 MainScope().launch {
-            //                     viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
-            //                 }
-            //             }else{
-            //                 MainScope().launch {
-            //                     viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_failed))
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
-        }
-    }) {
-        Text(text = stringResource(id = R.string.download_image)+ "-新")
-    }
-}
-
-@Composable
-fun SaveImageData2(info: LongPressInfo) {
-    val context = LocalContext.current
-    val viewModel = LocalViewModel.current
-    DropdownMenuItem(onClick = {
-        info.hidePopup()
-        ioScope.launch {
-            val bitmap:Bitmap? = info.extra.dataUrlToBitmap()
-            if (bitmap == null){
+            }else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), System.currentTimeMillis().toString() + fileType)
+                file.save(bytes)
                 MainScope().launch {
-                    viewModel.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
+                    viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
                 }
             }else{
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), System.currentTimeMillis().toString())
-                    savePictures(file, bitmap)
+                App.instance.cacheDir?.let {
+                    val file = File(it, System.currentTimeMillis().toString() + fileType)
+                    file.save(bytes)
                     if (file.exists()){
-                        file.ext()?.let { ext ->
-                            file.renameTo(File(file.absolutePath + ext))
+                        copy2Pictures(context, file)
+                        MainScope().launch {
+                            viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
                         }
-                    }
-                }else{
-                    App.instance.cacheDir?.let {
-                        val file = File(it, System.currentTimeMillis().toString())
-                        savePictures(file, bitmap)
-                        if (file.exists()){
-                            file.ext()?.let { ext ->
-                                file.renameTo(File(file.absolutePath + ext))
-                            }
-                            copy2Pictures(context, file)
-                            MainScope().launch {
-                                viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_succeeded))
-                            }
-                        }else{
-                            MainScope().launch {
-                                viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_failed))
-                            }
+                    }else{
+                        MainScope().launch {
+                            viewModel.snackBarHostState.showSnackbar(context.getString(R.string.download_failed))
                         }
                     }
                 }
             }
         }
     }) {
-        Text(text = stringResource(id = R.string.download_image) + "-老")
+        Text(text = stringResource(id = R.string.download_image))
     }
 }
+
 @Composable
 fun ShareImage(info: LongPressInfo) {
     val viewModel = LocalViewModel.current
@@ -350,7 +266,6 @@ fun ShareImage(info: LongPressInfo) {
             .doOnComplete {
                 viewModel.share(info.extra.file())
             }.doOnError {
-                // Toast.makeText(context, context.getString(R.string.share_failed), Toast.LENGTH_LONG).show()
                 MainScope().launch {
                     viewModel.snackBarHostState.showSnackbar(context.getString(R.string.share_failed))
                 }
@@ -368,7 +283,6 @@ fun ShareImageData(info: LongPressInfo) {
         ioScope.launch {
             val bitmap:Bitmap? = info.extra.dataUrlToBitmap()
             if (bitmap == null){
-                // Toast.makeText(context, context.getString(R.string.the_image_is_abnormal), Toast.LENGTH_LONG).show()
                 MainScope().launch {
                     viewModel.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
                 }
@@ -393,10 +307,10 @@ fun ShareImageData(info: LongPressInfo) {
 @Composable
 fun ParseQRImage(info: LongPressInfo) {
     TabManager.currentTab.value?.let{
-        it.view.isDrawingCacheEnabled
         it.view.buildDrawingCache()
-        val bitmap = it.view.drawingCache
+        val bitmap = Bitmap.createBitmap(it.view.drawingCache, 0, 0, it.view.drawingCache.width, it.view.drawingCache.height)
         val qrResult:String? = CodeUtils.parseCode(bitmap)
+        it.view.destroyDrawingCache()
         if (!qrResult.isNullOrBlank()){
             val context = LocalContext.current
             val viewModel = LocalViewModel.current
@@ -406,7 +320,7 @@ fun ParseQRImage(info: LongPressInfo) {
                 Task(info.extra, savePath = App.instance.cacheDir.path).download()
                     .doOnComplete {
                         val result:String? = CodeUtils.parseCode(info.extra.file().absolutePath)
-                        XLog.d("二维码：" + result)
+                        XLog.d("二维码：$result")
                         if (result.isNullOrBlank()){
                             // Toast.makeText(context, context.getString(R.string.unable_to_recognize_the_qr_code), Toast.LENGTH_LONG).show()
                             MainScope().launch {
@@ -420,9 +334,40 @@ fun ParseQRImage(info: LongPressInfo) {
                                     clipboardManager.setText(AnnotatedString(qrResult))
                                 }
                                 if(result.isUrl()){
+                                    val url = result.toUrl()
                                     setNegativeButton(R.string.open) {
-                                        TabManager.open(context, result.toUrl(), true)
+                                        TabManager.open(context, url, true)
                                     }
+                                    val targetIntent = App.instance.queryExtraActivities(Uri.parse(url))
+                                    if(targetIntent != null){
+                                        // 每次都要选择打开方式
+                                        App.instance.startActivity(targetIntent)
+                                    }
+                                    // val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    // val activities: List<ResolveInfo> = App.instance.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                                    // if (activities.isNotEmpty()){
+                                    //     val targetIntents: ArrayList<Intent> = ArrayList()
+                                    //     for (currentInfo in activities) {
+                                    //         if(currentInfo.activityInfo.packageName.equals(App.instance.applicationInfo.packageName, true)){
+                                    //             continue
+                                    //         }
+                                    //         targetIntents.add(Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage(currentInfo.activityInfo.packageName))
+                                    //     }
+                                    //
+                                    //     if (targetIntents.isNotEmpty()){
+                                    //         val targetIntent = Intent.createChooser(
+                                    //             targetIntents.removeAt(0),
+                                    //             App.instance.getString(R.string.open_by_outer)
+                                    //         ).apply {
+                                    //             putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toTypedArray())
+                                    //             flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                    //         }
+                                    //         setNeutralButton(R.string.open_by_outer) {
+                                    //             // 每次都要选择打开方式
+                                    //             App.instance.startActivity(targetIntent)
+                                    //         }
+                                    //     }
+                                    // }
                                 }
                             }.show()
                         }
@@ -438,103 +383,159 @@ fun ParseQRImage(info: LongPressInfo) {
         }
     }
 }
+
+
+// @Composable
+// fun ParseQRImage2(info: LongPressInfo) {
+//     TabManager.currentTab.value?.let{
+//         it.view.buildDrawingCache()
+//         val bitmap = Bitmap.createBitmap(it.view.drawingCache, 0, 0, it.view.drawingCache.width, it.view.drawingCache.height)
+//         val qrResult:String? = CodeUtils.parseCode(bitmap)
+//         it.view.destroyDrawingCache()
+//         if (!qrResult.isNullOrBlank()){
+//             val context = LocalContext.current
+//             val clipboardManager = LocalClipboardManager.current
+//             DropdownMenuItem(onClick = {
+//                 info.hidePopup()
+//                 AlertBottomSheet.Builder(context).apply {
+//                     setTitle(context.getString(R.string.the_result_of_qr_code_recognition))
+//                     setMessage(qrResult)
+//                     setPositiveButton(R.string.copy) {
+//                         clipboardManager.setText(AnnotatedString(qrResult))
+//                     }
+//                     if(qrResult.isUrl()){
+//                         val url = qrResult.toUrl()
+//                         setNegativeButton(R.string.open) {
+//                             TabManager.open(context, url, true)
+//                         }
+//                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+//                         val activities: List<ResolveInfo> = App.instance.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+//                         if (activities.isNotEmpty()){
+//                             val targetIntents: ArrayList<Intent> = java.util.ArrayList()
+//                             for (currentInfo in activities) {
+//                                 if(currentInfo.activityInfo.packageName.equals(App.instance.applicationInfo.packageName, true)){
+//                                     continue
+//                                 }
+//                                 targetIntents.add(Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage(currentInfo.activityInfo.packageName))
+//                                 XLog.d("内容1：" + currentInfo.activityInfo.packageName)
+//                             }
+//
+//                             if (targetIntents.isNotEmpty()){
+//                                 val targetIntent = Intent.createChooser(
+//                                     targetIntents.removeAt(0),
+//                                     App.instance.getString(R.string.open_by_outer)
+//                                 ).apply {
+//                                     putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toTypedArray())
+//                                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
+//                                 }
+//                                 setNeutralButton(R.string.open_by_outer) {
+//                                     // 每次都要选择打开方式
+//                                     App.instance.startActivity(targetIntent)
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }.show()
+//             }) {
+//                 Text(text = stringResource(id = R.string.identify_qr_code))
+//             }
+//         }
+//     }
+// }
+
+// @Composable
+// fun ParseQRImage3(info: LongPressInfo) {
+//     var qrResult by remember { mutableStateOf("")}
+//     info.preview?.let{
+//         ioScope.launch {
+//             qrResult = CodeUtils.parseCode(it) ?: ""
+//         }
+//     }
+//     if (qrResult.isNotBlank()){
+//         val context = LocalContext.current
+//         val clipboardManager = LocalClipboardManager.current
+//         DropdownMenuItem(onClick = {
+//             info.hidePopup()
+//             AlertBottomSheet.Builder(context).apply {
+//                 setTitle(context.getString(R.string.the_result_of_qr_code_recognition))
+//                 setMessage(qrResult)
+//                 setPositiveButton(android.R.string.copy) {
+//                     clipboardManager.setText(AnnotatedString(qrResult))
+//                 }
+//                 if(qrResult.isUrl()){
+//                     val url = qrResult.toUrl()
+//                     setNegativeButton(R.string.open) {
+//                         TabManager.open(context, url, true)
+//                     }
+//                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+//                     val activities: List<ResolveInfo> = App.instance.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+//                     if (activities.isNotEmpty()){
+//                         setNeutralButton(R.string.open_by_outer) {
+//                             // 每次都要选择打开方式
+//                             App.instance.startActivity(
+//                                 Intent.createChooser(
+//                                     intent,
+//                                     App.instance.getString(R.string.open_by_outer)
+//                                 ).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK }
+//                             )
+//                         }
+//                     }
+//                 }
+//             }.show()
+//         }) {
+//             Text(text = stringResource(id = R.string.identify_qr_code))
+//         }
+//     }
+// }
+
 @Composable
 fun ParseQRImageData(info: LongPressInfo) {
     TabManager.currentTab.value?.let{
-        it.view.isDrawingCacheEnabled
-        it.view.buildDrawingCache()
-        val screenBitmap = it.view.drawingCache
-        val qrResult:String? = CodeUtils.parseCode(screenBitmap)
-        if (!qrResult.isNullOrBlank()){
+        var qrResult by remember { mutableStateOf("")}
+        ioScope.launch {
+            val bitmap:Bitmap? = info.extra.dataUrlToBitmap()
+            if (bitmap != null){
+                qrResult = CodeUtils.parseCode(bitmap) ?: ""
+            }else{
+                qrResult = ""
+            }
+        }
+
+        if (qrResult.isNotBlank()){
             val context = LocalContext.current
-            val viewModel = LocalViewModel.current
             val clipboardManager = LocalClipboardManager.current
             DropdownMenuItem(onClick = {
                 info.hidePopup()
-                ioScope.launch {
-                    val bitmap:Bitmap? = info.extra.dataUrlToBitmap()
-                    if (bitmap == null){
-                        // Toast.makeText(context, context.getString(R.string.the_image_is_abnormal), Toast.LENGTH_LONG).show()
-                        MainScope().launch {
-                            viewModel.snackBarHostState.showSnackbar(context.getString(R.string.the_image_is_abnormal))
+                AlertBottomSheet.Builder(context).apply {
+                    setTitle(context.getString(R.string.the_result_of_qr_code_recognition))
+                    setMessage(qrResult)
+                    setPositiveButton(R.string.copy) {
+                        clipboardManager.setText(AnnotatedString(qrResult))
+                    }
+                    if(qrResult.isUrl()){
+                        val url = qrResult.toUrl()
+                        setNegativeButton(R.string.open) {
+                            TabManager.open(context, qrResult.toUrl(), true)
                         }
-                    }else{
-                        val result:String? = CodeUtils.parseCode(bitmap)
-                        XLog.d("二维码：" + result)
-                        if (result.isNullOrBlank()){
-                            // Toast.makeText(context, context.getString(R.string.unable_to_recognize_the_qr_code), Toast.LENGTH_LONG).show()
-                            MainScope().launch {
-                                viewModel.snackBarHostState.showSnackbar(context.getString(R.string.unable_to_recognize_the_qr_code))
+                        val targetIntents: MutableList<Intent> = App.instance.queryExtraActivityIntents(Uri.parse(url))
+                        if (targetIntents.isNotEmpty()){
+                            val targetIntent = Intent.createChooser(
+                                targetIntents.removeAt(0),
+                                App.instance.getString(R.string.open_by_outer)
+                            ).apply {
+                                putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toTypedArray())
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             }
-                        }else{
-                            AlertBottomSheet.Builder(context).apply {
-                                setTitle(context.getString(R.string.the_result_of_qr_code_recognition))
-                                setMessage(result)
-                                setPositiveButton(R.string.copy) {
-                                    clipboardManager.setText(AnnotatedString(qrResult))
-                                }
-                                if(result.isUrl()){
-                                    setNegativeButton(R.string.open) {
-                                        TabManager.open(context, result.toUrl(), true)
-                                    }
-                                }
-                            }.show()
+                            setNeutralButton(R.string.open_by_outer) {
+                                // 每次都要选择打开方式
+                                App.instance.startActivity(targetIntent)
+                            }
                         }
                     }
-                }
+                }.show()
             }) {
                 Text(text = stringResource(id = R.string.identify_qr_code))
             }
         }
     }
 }
-
-@Composable
-fun ParseQRImage2(info: LongPressInfo) {
-    val context = LocalContext.current
-    // var qrResult by remember {mutableStateOf("")}
-    DropdownMenuItem(onClick = {
-        info.hidePopup()
-        info.extra.download().doOnComplete {
-            val qrResult = CodeUtils.parseCode(info.extra.file().absolutePath)
-            XLog.d("二维码：" + qrResult)
-            if (qrResult.isNullOrBlank() || !qrResult.isUrl()){
-                Toast.makeText(context, context.getString(R.string.unable_to_recognize_the_qr_code), Toast.LENGTH_LONG ).show()
-            }else{
-                TabManager.open(context, qrResult.toUrl())
-            }
-        }.subscribe()
-    }) {
-        Text(text = stringResource(id = R.string.identify_qr_code))
-    }
-}
-
-// @Composable
-// fun ParseQRImage3(info: LongPressInfo) {
-//     TabManager.currentTab.value?.let{
-//         val context = LocalContext.current
-//         val viewModel = LocalViewModel.current
-//         it.view.isDrawingCacheEnabled
-//         it.view.buildDrawingCache()
-//         val bitmap = it.view.drawingCache
-//         XLog.d("二维码1：" + bitmap)
-//         val qrResult = CodeUtils.parseCode(bitmap)
-//         XLog.d("二维码2：" + qrResult)
-//         if (qrResult.isNotBlank()){
-//             if(qrResult.isUrl()){
-//                 DropdownMenuItem(onClick = {
-//                     info.hidePopup()
-//                     TabManager.open(context, qrResult.toUrl())
-//                 }) {
-//                     Text(text = stringResource(id = R.string.identify_qr_code))
-//                 }
-//             }else{
-//                 val clipboardManager = LocalClipboardManager.current
-//                 MainScope().launch {
-//                     viewModel.showSnackBar(qrResult, context.getString(R.string.copy), onClick = {clipboardManager.setText(AnnotatedString(qrResult))})
-//                 }
-//                 // Toast.makeText(context, context.getString(R.string.unable_to_recognize_the_qr_code), Toast.LENGTH_LONG ).show()
-//             }
-//         }
-//     }
-// }

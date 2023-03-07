@@ -1,5 +1,6 @@
 package com.hinnka.tsbrowser.ui.composable.main.favorite
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -16,14 +17,17 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.persist.AppDatabase
 import com.hinnka.tsbrowser.persist.Favorite
+
 
 @Composable
 fun AddFavorite(orig: Favorite? = null, onDismiss: (Favorite) -> Unit) {
@@ -33,6 +37,12 @@ fun AddFavorite(orig: Favorite? = null, onDismiss: (Favorite) -> Unit) {
     val titleField = remember { mutableStateOf(TextFieldValue(orig?.title ?: "")) }
     val urlField = remember { mutableStateOf(TextFieldValue(orig?.url ?: "")) }
 
+    titleField.value = TextFieldValue(orig?.title ?: "")
+    urlField.value = TextFieldValue(orig?.url ?: "")
+
+    // val urlField = mutableStateOf(TextFieldValue(orig?.url ?: ""))
+    // XLog.d("内容1： " + orig?.title + " , " + orig?.url)
+    // XLog.d("内容2： " + titleField.value + " , " + urlField.value.text)
 
     val primaryColor = MaterialTheme.colors.primary
     val newTextColor = remember { mutableStateOf(contentColor) }

@@ -1,5 +1,6 @@
 package com.hinnka.tsbrowser.ui.composable.main
 
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
@@ -12,7 +13,6 @@ import androidx.compose.material.SnackbarHost
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.elvishew.xlog.XLog
@@ -32,7 +32,6 @@ val LocalMainDrawerState = staticCompositionLocalOf<BottomDrawerState> {
     error("main drawer state not found")
 }
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun MainPage() {
     logD("MainPage start")
@@ -40,7 +39,7 @@ fun MainPage() {
 
     TSBottomDrawer(drawerState = mainDrawerState) {
         CompositionLocalProvider(LocalMainDrawerState provides mainDrawerState) {
-            Column() {
+            Column {
                 StatusBar()
                 MainView()
             }
@@ -50,7 +49,6 @@ fun MainPage() {
     XLog.d("MainPage end")
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun Welcome() {
     var showSecret by remember { mutableStateOf(false) }
@@ -80,37 +78,44 @@ fun Welcome() {
 @Composable
 fun MainView() {
     logD("MainView start")
-    val tab = TabManager.currentTab.value
-    val viewModel = LocalViewModel.current
+    // val tab = TabManager.currentTab.value
+    // val viewModel = LocalViewModel.current
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding()) {
         Box(modifier = Modifier.weight(1f)) {
-            TSBackHandler(
-                enabled = tab?.canGoBackState?.value == true,
-                onBack = { tab?.onBackPressed() }) {
-                AndroidView(
-                    factory = {
-                        FrameLayout(it)
-                    },
-                    modifier = Modifier.fillMaxSize(),
-                    update = { tabContainer ->
-                        tab?.let {
-                            tabContainer.removeAllViews()
-                            it.view.removeFromParent()
-                            tabContainer.addView(it.view)
-                        }
-                    }
-                )
-                LongPressPopup()
-                SnackbarHost(modifier = Modifier.align(Alignment.BottomCenter), hostState = App.snackBarHostState)
-            }
-
+            WebView()
             NewTabView()
             CoverView()
+
+            SnackbarHost(modifier = Modifier.align(Alignment.BottomCenter), hostState = App.snackBarHostState)
         }
         BottomBar()
     }
     logD("MainView end")
+}
+@Composable
+fun WebView() {
+    val tab = TabManager.currentTab.value
+    TSBackHandler(
+        enabled = tab?.canGoBackState?.value == true,
+        onBack = { tab?.onBackPressed() }) {
+
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = {
+                FrameLayout(it)
+            },
+            update = { tabContainer ->
+                tab?.let {
+                    tabContainer.removeAllViews()
+                    it.view.removeFromParent()
+                    tabContainer.addView(it.view)
+                }
+            }
+        )
+        LongPressPopup()
+    }
+
 }
 
 @Composable
@@ -119,7 +124,7 @@ fun NewTabView() {
     val viewModel = LocalViewModel.current
     val uiState = viewModel.uiState
     if (uiState.value == UIState.Main && tab.isHome) {
-        NewTabPage()
+        HomePage()
     }
 }
 

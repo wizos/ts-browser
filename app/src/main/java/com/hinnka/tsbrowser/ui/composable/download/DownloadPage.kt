@@ -94,6 +94,8 @@ fun DownloadPage() {
         TSAppBar(title = stringResource(id = R.string.downloads), actions = {
             Box(modifier = Modifier
                 .fillMaxHeight()
+                .imePadding()
+                .navigationBarsPadding()
                 .clickable {
                     scope.launch {
                         val it = AppDatabase.instance

@@ -45,7 +45,7 @@ import com.hinnka.tsbrowser.ui.theme.TSBrowserTheme
 import com.king.zxing.CameraScan
 import kotlinx.coroutines.launch
 
-open class MainActivity : BaseActivity() {
+open class MainActivity: BaseActivity() {
 
     private val viewModel by viewModels<AppViewModel>()
 

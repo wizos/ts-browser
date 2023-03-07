@@ -54,12 +54,18 @@ fun RowScope.ForwardButton() {
 }
 
 @Composable
-fun RowScope.ShareButton() {
+fun RowScope.ShareButton(drawerState: com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState) {
     val viewModel = LocalViewModel.current
     val tab by TabManager.currentTab
+    val scope = rememberCoroutineScope()
+
     IconButton(
         onClick = {
             viewModel.share(tab?.urlState?.value ?: "")
+
+            scope.launch {
+                drawerState.close()
+            }
         },
         modifier = Modifier
             .weight(1f)

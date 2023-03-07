@@ -69,7 +69,11 @@ fun HistoryPage() {
         }
     }
     val lazyPagingItems = pager.flow.collectAsLazyPagingItems()
-    Scaffold(topBar = {
+    Scaffold(
+        modifier = Modifier
+            .imePadding()
+            .navigationBarsPadding(),
+        topBar = {
         TSAppBar(title = stringResource(id = R.string.history), actions = {
             IconButton(onClick = {
                 AlertBottomSheet.Builder(context).apply {

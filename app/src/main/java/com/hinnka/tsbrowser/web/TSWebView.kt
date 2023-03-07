@@ -22,8 +22,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.*
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
-import com.hinnka.tsbrowser.App
-import com.hinnka.tsbrowser.R
+import com.hinnka.tsbrowser.*
 import com.hinnka.tsbrowser.download.DownloadHandler
 import com.hinnka.tsbrowser.ext.*
 import com.hinnka.tsbrowser.persist.Settings
@@ -37,6 +36,12 @@ import java.io.File
 import java.io.InputStreamReader
 import kotlin.coroutines.resume
 
+val longPressType = arrayOf(
+    WebView.HitTestResult.EMAIL_TYPE,
+    WebView.HitTestResult.PHONE_TYPE,
+    WebView.HitTestResult.SRC_ANCHOR_TYPE)
+val longPressImg = arrayOf(WebView.HitTestResult.IMAGE_TYPE, WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE)
+
 @SuppressLint("SetJavaScriptEnabled")
 class TSWebView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
@@ -45,18 +50,30 @@ class TSWebView @JvmOverloads constructor(
     private val lifecycleRegistry = LifecycleRegistry(context as LifecycleOwner)
     private var fullScreenView: ViewGroup? = null
     private var origOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-    private val downloadHandler = DownloadHandler(context)
+    val downloadHandler = DownloadHandler(context)
     var dataListener: WebDataListener? = null
 
-    private val gestureDetector =
-        GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onLongPress(e: MotionEvent) {
-                handleLongPress(e)
+
+    private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onLongPress(event: MotionEvent) {
+                val type = hitTestResult.type
+                val extra = hitTestResult.extra
+                logD("webview hitResult", type, extra)
+
+                if(longPressType.contains(hitTestResult.type)){
+                    dataListener?.longPressState?.value =
+                        LongPressInfo(true, event.x.toInt(), event.y.toInt(), type, extra ?: "")
+                }else if(longPressImg.contains(hitTestResult.type)){
+                    buildDrawingCache()
+                    dataListener?.longPressState?.value =
+                        LongPressInfo(true, event.x.toInt(), event.y.toInt(), type, extra ?: "", Bitmap.createBitmap(drawingCache, 0, 0, drawingCache.width, drawingCache.height))
+                    destroyDrawingCache()
+                }
             }
         })
 
     init {
-        setWebContentsDebuggingEnabled(true)
+        setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
     }
 
     init {
@@ -90,11 +107,13 @@ class TSWebView @JvmOverloads constructor(
             useWideViewPort = true
             setSupportZoom(true)
 
-            setAppCachePath(context.cacheDir.path)
+            // 安全浏览策略：访问不良网站会拦截并发出警告
+            if (Build.VERSION.SDK_INT >= 26) safeBrowsingEnabled = false
+
             setGeolocationEnabled(true)
-            setGeolocationDatabasePath(File(context.filesDir, "geodb").path)
+            setGeolocationDatabasePath(File(context.filesDir, GeoDB).path)
             setSupportMultipleWindows(true)
-            addJavascriptInterface(TSBridge(this@TSWebView), "TSBridge")
+            addJavascriptInterface(TSBridge(this@TSWebView), LoreadBridge)
 
             userAgentString = Settings.userAgent.value
         }
@@ -129,7 +148,6 @@ class TSWebView @JvmOverloads constructor(
         if (value) {
             CookieManager.getInstance().setAcceptCookie(false)
             settings.cacheMode = WebSettings.LOAD_NO_CACHE
-            settings.setAppCacheEnabled(false)
             clearHistory()
             clearCache(true)
             clearFormData()
@@ -138,7 +156,6 @@ class TSWebView @JvmOverloads constructor(
         } else {
             CookieManager.getInstance().setAcceptCookie(true)
             settings.cacheMode = WebSettings.LOAD_DEFAULT
-            settings.setAppCacheEnabled(true)
             settings.savePassword = true
             settings.saveFormData = true
         }
@@ -230,7 +247,7 @@ class TSWebView @JvmOverloads constructor(
                     canvas.drawBitmap(windowBitmap, 0f, 0f, null)
                 } else {
                     canvas.drawBitmap(window.decorView.drawingCache, 0f, 0f, null)
-//                    window.decorView.draw(canvas)
+                    // window.decorView.draw(canvas)
                 }
             } else {
                 canvas.translate(-scrollX.toFloat(), -scrollY.toFloat())
@@ -246,7 +263,9 @@ class TSWebView @JvmOverloads constructor(
     }
 
     override fun onReceivedTitle(title: String?) {
-        dataListener?.titleState?.value = if (title == "about:blank") context.getString(R.string.new_tab) else title ?: ""
+        // dataListener?.titleState?.value = if (title == "about:blank") context.getString(R.string.new_tab) else title ?: ""
+        // 修复 web title 获取为空的问题
+        dataListener?.titleState?.value = if (title == "about:blank") context.getString(R.string.new_tab) else title ?: copyBackForwardList().currentItem?.title ?: ""
     }
 
     override fun onReceivedIcon(icon: Bitmap?) {
@@ -328,10 +347,20 @@ class TSWebView @JvmOverloads constructor(
     }
 
     override fun onPageStarted(url: String, favicon: Bitmap?) {
+        // 修复 web title 获取为空的问题
+        dataListener?.titleState?.value = copyBackForwardList().currentItem?.title.toString()
+        // dataListener?.titleState?.value = copyBackForwardList()?.currentItem?.favicon
     }
 
     override fun onPageFinished(url: String) {
-        // evaluateJavascript(bridgeJs, null)
+        // 修复 web title 获取为空的问题
+        if (dataListener?.titleState?.value == null) {
+            dataListener?.titleState?.value = copyBackForwardList().currentItem?.title.toString()
+        } else if (dataListener?.titleState?.value == "about:blank") {
+            dataListener?.titleState?.value = context.getString(R.string.new_tab)
+        }
+
+        evaluateJavascript(App.instance.textFromLocalOrAssets(JsFilePath.loaderWeb), null)
     }
 
     override fun doUpdateVisitedHistory(url: String, isReload: Boolean) {
@@ -340,13 +369,5 @@ class TSWebView @JvmOverloads constructor(
 
     override fun getLifecycle(): Lifecycle {
         return lifecycleRegistry
-    }
-
-    companion object {
-        // val bridgeJs: String by lazy {
-        //     App.instance.assets.open("tsbridge.js").use {
-        //         BufferedReader(InputStreamReader(it)).readText()
-        //     }
-        // }
     }
 }

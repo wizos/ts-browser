@@ -23,9 +23,10 @@ package com.hinnka.tsbrowser
 
 const val FILE = "file:///"
 const val PACKAGE = "package:"
-
 val SupportedSchemaWhenLongPress = setOf(Schema.HTTP, Schema.HTTPS, Schema.VIEW_SOURCE)
 
+const val LoreadBridge = "LoreadBridge"
+const val GeoDB = "geodb"
 object Schema {
     const val HTTP = "http://"
     const val HTTPS = "https://"
@@ -53,4 +54,39 @@ object GroupOrder {
     const val ORIGIN = 0
     const val BY_NAME = 1
     const val BY_DELAY = 2
+}
+
+object JsFilePath{
+    const val loaderWeb = "js/loader.web.js"
+    const val loaderNetwork = "js/loader.network.js"
+
+    const val loreadConsole = "js/loread.console.js"
+    const val loreadSmartExtractor = "js/loread.smartExtractor.js"
+    const val loreadTranslator = "js/loread.translator.js"
+    const val loreadReadability = "js/loread.readability.js"
+
+
+    const val readabilityOld = "js/loread.readability.old.js"
+
+    const val loreadCommon = "js/loread.common.js"
+    const val normalize = "js/loread.normalize.js"
+    const val videoController = "js/loread.video.controller.js"
+    const val videoControllerIconFont = "js/loread.video.controller.iconfont.js"
+    const val selector = "js/loread.selector.js"
+    const val keepElement = "js/loread.keepElement.js"
+
+    const val zepto = "js/zepto.min.js"
+    const val vConsole = "js/vconsole.min.js"
+
+    const val plyr = "js/plyr.js"
+    const val highlight = "js/highlight.min.js"
+    const val mathjax = "js/tex-mml-chtml.js"
+}
+object CssFilePath{
+    const val articleThemeDay = "css/article_theme_day.css"
+    const val articleThemeNight = "css/article_theme_night.css"
+    const val videoController = "css/loread.video.controller.css"
+    const val selector = "css/loread.selector.css"
+    const val translateelement = "css/translateelement.css"
+    const val normalize = "css/normalize.css";
 }

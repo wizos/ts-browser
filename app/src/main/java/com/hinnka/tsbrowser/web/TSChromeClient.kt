@@ -12,6 +12,7 @@ import android.webkit.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.ext.activity
@@ -45,6 +46,7 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
     /**
      * requestedOrientation 获取当前Activity的屏幕方向
      */
+    @Deprecated("Deprecated in Java")
     override fun onShowCustomView(
         view: View,
         requestedOrientation: Int,
@@ -63,6 +65,7 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
         isUserGesture: Boolean,
         resultMsg: Message
     ): Boolean {
+        XLog.e("onCreateWindow $isDialog, $isUserGesture, $resultMsg")
         return controller.onCreateWindow(resultMsg)
     }
 
@@ -80,6 +83,7 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
         message: String?,
         result: JsResult?
     ): Boolean {
+        XLog.e("onJsAlert $url, $message, $result")
         return super.onJsAlert(view, url, message, result)
     }
 
@@ -89,6 +93,7 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
         message: String?,
         result: JsResult?
     ): Boolean {
+        XLog.e("onJsConfirm $url, $message, $result")
         return super.onJsConfirm(view, url, message, result)
     }
 
@@ -99,6 +104,7 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
         defaultValue: String?,
         result: JsPromptResult?
     ): Boolean {
+        XLog.e("onJsPrompt $url, $message, $result, $defaultValue")
         return super.onJsPrompt(view, url, message, defaultValue, result)
     }
 
@@ -108,33 +114,8 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
         message: String?,
         result: JsResult?
     ): Boolean {
+        XLog.e("onJsBeforeUnload ")
         return super.onJsBeforeUnload(view, url, message, result)
-    }
-
-    override fun onExceededDatabaseQuota(
-        url: String?,
-        databaseIdentifier: String?,
-        quota: Long,
-        estimatedDatabaseSize: Long,
-        totalQuota: Long,
-        quotaUpdater: WebStorage.QuotaUpdater?
-    ) {
-        super.onExceededDatabaseQuota(
-            url,
-            databaseIdentifier,
-            quota,
-            estimatedDatabaseSize,
-            totalQuota,
-            quotaUpdater
-        )
-    }
-
-    override fun onReachedMaxAppCacheSize(
-        requiredStorage: Long,
-        quota: Long,
-        quotaUpdater: WebStorage.QuotaUpdater?
-    ) {
-        super.onReachedMaxAppCacheSize(requiredStorage, quota, quotaUpdater)
     }
 
     override fun onGeolocationPermissionsShowPrompt(
@@ -163,10 +144,12 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
     }
 
     override fun onGeolocationPermissionsHidePrompt() {
+        XLog.e("onGeolocationPermissionsHidePrompt ")
         super.onGeolocationPermissionsHidePrompt()
     }
 
     override fun onPermissionRequest(request: PermissionRequest) {
+        XLog.e("onPermissionRequest ")
         mainScope.launch {
             val permissions = request.resources.map {
                 when (it) {
@@ -181,6 +164,7 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
     }
 
     override fun onPermissionRequestCanceled(request: PermissionRequest?) {
+        XLog.e("onPermissionRequestCanceled ")
         super.onPermissionRequestCanceled(request)
     }
 
@@ -225,6 +209,7 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
         filePathCallback: ValueCallback<Array<Uri>>,
         fileChooserParams: FileChooserParams
     ): Boolean {
+        XLog.e("onShowFileChooser ")
         mainScope.launch {
             val uris = controller.showFileChooser(fileChooserParams)
             filePathCallback.onReceiveValue(uris)

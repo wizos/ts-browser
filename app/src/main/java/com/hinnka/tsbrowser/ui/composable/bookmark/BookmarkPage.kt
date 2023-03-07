@@ -43,7 +43,11 @@ fun BookmarkPage() {
             }
         }
     ) {
-        Scaffold(topBar = {
+        Scaffold(
+            modifier = Modifier
+                .imePadding()
+                .navigationBarsPadding(),
+            topBar = {
             TSAppBar(
                 title = currentFolder.value.name,
                 actions = {
@@ -54,7 +58,8 @@ fun BookmarkPage() {
                     }
                 }
             )
-        }) {
+        }
+        ) {
             if (currentFolder.value.children.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Box(

@@ -4,6 +4,7 @@
     package="com.hinnka.tsbrowser">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -29,14 +30,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.TSBrowser"
         tools:targetApi="m">
 
+        <!--android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard"-->
+        <!--android:windowSoftInputMode="stateHidden|adjustResize"-->
         <activity
             android:name=".ui.home.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:windowSoftInputMode="stateHidden|adjustResize">
 
             <intent-filter>
@@ -144,7 +148,7 @@
             android:windowSoftInputMode="stateHidden|adjustResize" />
 
         <activity
-            android:name="com.king.zxing.CaptureActivity"
+            android:name=".ui.CaptureActivity"
             android:screenOrientation="user"
             android:theme="@style/CaptureTheme"/>
 

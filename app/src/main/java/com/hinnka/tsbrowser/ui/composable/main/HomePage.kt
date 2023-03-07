@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NewTabPage() {
+fun HomePage() {
     XLog.d("NewTabPage start")
     val scope = rememberCoroutineScope()
     val favoritesState = AppDatabase.instance.favoriteDao().getAllFlow().collectAsState(initial = arrayListOf())
@@ -78,14 +78,14 @@ fun NewTabPage() {
         ) {
             items(favorites.value) { favorite ->
                 FavoriteItem(favorite, onUpdate = {
-                    AlertBottomSheet.open {
-                        AddFavorite(favorite) {
-                            scope.launch {
-                                AlertBottomSheet.close()
-                                refresh()
-                            }
-                        }
-                    }
+                    // AlertBottomSheet.open {
+                    //     AddFavorite(favorite) {
+                    //         scope.launch {
+                    //             AlertBottomSheet.close()
+                    //             refresh()
+                    //         }
+                    //     }
+                    // }
                 }, onDelete = {
                     AppDatabase.instance.favoriteDao().delete(favorite)
                     refresh()

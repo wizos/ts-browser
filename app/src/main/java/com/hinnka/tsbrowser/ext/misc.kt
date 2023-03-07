@@ -1,6 +1,7 @@
 package com.hinnka.tsbrowser.ext
 
 import android.util.Log
+import com.elvishew.xlog.XLog
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,9 +15,9 @@ val mainScope = CoroutineScope(SupervisorJob() + Dispatchers.Main + exceptionHan
 val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler)
 
 fun logD(vararg message: Any?) {
-    Log.d("TSBrowser", message.contentDeepToString())
+    XLog.d("TSBrowser" + message.contentDeepToString())
 }
 
 fun logE(vararg message: Any?, throwable: Throwable = Throwable()) {
-    Log.e("TSBrowser", message.contentDeepToString(), throwable)
+    XLog.e("TSBrowser" + message.contentDeepToString() + throwable)
 }
