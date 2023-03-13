@@ -24,8 +24,9 @@ fun TSDrawer(drawerState: BottomDrawerState) {
             .height(48.dp)
             .fillMaxWidth()
     ) {
-        BackButton()
-        ForwardButton()
+        BackButton(drawerState = drawerState)
+        // ForwardButton()
+        HomeButton(drawerState = drawerState)
         AddBookmarkButton(drawerState = drawerState)
         ShareButton(drawerState = drawerState)
     }

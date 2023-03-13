@@ -6,7 +6,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.http.SslError
 import android.os.Message
-import android.text.TextUtils
+import android.security.KeyChain
+import android.security.KeyChainAliasCallback
+import android.security.KeyChainException
 import android.view.KeyEvent
 import android.webkit.*
 import androidx.compose.foundation.layout.Column
@@ -20,19 +22,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.elvishew.xlog.XLog
-import com.google.gson.Gson
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.adblock.AdBlocker
 import com.hinnka.tsbrowser.ext.getAppName
-import com.hinnka.tsbrowser.ext.logD
-import com.hinnka.tsbrowser.ext.logE
 import com.hinnka.tsbrowser.persist.LocalStorage
-import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import java.security.PrivateKey
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+
 
 class TSWebClient(private val controller: UIController) : WebViewClient() {
     companion object {
@@ -48,15 +49,15 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
     /**
      * @return
      * 返回 true 表示你已经处理此次请求。
-     * 返回 false 表示由webview自行处理（一般都是把此url加载出来）。
+     * 返回 false 表示由 webview 自行处理（一般都是把此url加载出来）。
      * 返回 super.shouldOverrideUrlLoading(view, url); 这个返回的方法会调用父类方法，也就是跳转至手机浏览器
      */
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         val uri = request.url
-
         XLog.e("shouldOverrideUrlLoading ${uri}")
+
         if (localSchemes.contains(uri.scheme)) {
-            return false
+            return controller.shouldOverrideUrlLoading(view, request)
         }
         var intent = Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
         var componentName = intent.resolveActivity(view.context.packageManager)
@@ -88,25 +89,17 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         return true
     }
 
-    override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
-        controller.onPageStarted(url, favicon)
-    }
+    // override fun onLoadResource(view: WebView, url: String) {
+    //     super.onLoadResource(view, url)
+    //     // XLog.e("onLoadResource $url")
+    // }
 
-    override fun onPageFinished(view: WebView, url: String) {
-        controller.onPageFinished(url)
-    }
-
-    override fun onLoadResource(view: WebView, url: String) {
-        super.onLoadResource(view, url)
-        // XLog.e("onLoadResource $url")
-    }
-
-    private val gson = Gson()
+    // private val gson = Gson()
     override fun shouldInterceptRequest(
         view: WebView,
         request: WebResourceRequest
     ): WebResourceResponse? {
-        XLog.e("shouldInterceptRequest ${request.url} " + gson.toJson(request))
+        // XLog.e("shouldInterceptRequest ${request.url} " )
         val host = request.url?.host ?: return null
         if (AdBlocker.shouldBlock(host)) {
             if (!interceptUrls.contains(host)) {
@@ -118,32 +111,40 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
         return null
     }
 
-    override fun onReceivedError(
-        view: WebView?,
-        errorCode: Int,
-        description: String?,
-        failingUrl: String?
-    ) {
-        XLog.e("onReceivedError 1 ")
-        super.onReceivedError(view, errorCode, description, failingUrl)
+    override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+        controller.onPageStarted(url, favicon)
     }
 
-    override fun onReceivedError(
-        view: WebView?,
-        request: WebResourceRequest?,
-        error: WebResourceError?
-    ) {
-        XLog.e("onReceivedError 2 ")
-        super.onReceivedError(view, request, error)
+    override fun onPageFinished(view: WebView, url: String) {
+        controller.onPageFinished(url)
     }
 
-    override fun onReceivedHttpError(
-        view: WebView,
-        request: WebResourceRequest,
-        response: WebResourceResponse
-    ) {
-        XLog.e("http error ${request.url} ->${response.statusCode}: ${response.reasonPhrase}")
-    }
+    // override fun onReceivedError(
+    //     view: WebView?,
+    //     errorCode: Int,
+    //     description: String?,
+    //     failingUrl: String?
+    // ) {
+    //     XLog.e("onReceivedError 1 ")
+    //     super.onReceivedError(view, errorCode, description, failingUrl)
+    // }
+
+    // override fun onReceivedError(
+    //     view: WebView?,
+    //     request: WebResourceRequest?,
+    //     error: WebResourceError?
+    // ) {
+    //     XLog.e("onReceivedError 2 ")
+    //     super.onReceivedError(view, request, error)
+    // }
+    //
+    // override fun onReceivedHttpError(
+    //     view: WebView,
+    //     request: WebResourceRequest,
+    //     response: WebResourceResponse
+    // ) {
+    //     XLog.e("http error ${request.url} ->${response.statusCode}: ${response.reasonPhrase}")
+    // }
 
     /**
      * 通知主程序处理SSL客户端认证请求。如果需要提供密钥，主程序负责显示UI界面。
@@ -156,60 +157,63 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
     @SuppressLint("WebViewClientOnReceivedSslError")
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         XLog.e("onReceivedSslError ")
-        if (System.currentTimeMillis() - sslLastTime <= sslKeepLastDuration) {
-            if (sslLastAllow) {
-                handler.proceed()
-            } else {
-                handler.cancel()
-            }
-            return
-        }
-        AlertBottomSheet.Builder(view.context).apply {
-            setTitle(R.string.warning)
-            setMessage(R.string.insecue_message)
-            setPositiveButton(android.R.string.yes) {
-                sslLastAllow = true
-                sslLastTime = System.currentTimeMillis()
-                handler.proceed()
-            }
-            setNegativeButton(android.R.string.no) {
-                sslLastAllow = false
-                sslLastTime = System.currentTimeMillis()
-                handler.cancel()
-            }
-        }.show()
+        handler.proceed()
+        // if (System.currentTimeMillis() - sslLastTime <= sslKeepLastDuration) {
+        //     if (sslLastAllow) {
+        //         handler.proceed()
+        //     } else {
+        //         handler.cancel()
+        //     }
+        //     return
+        // }
+        // AlertBottomSheet.Builder(view.context).apply {
+        //     setTitle(R.string.warning)
+        //     setMessage(R.string.insecue_message)
+        //     setPositiveButton(android.R.string.yes) {
+        //         sslLastAllow = true
+        //         sslLastTime = System.currentTimeMillis()
+        //         handler.proceed()
+        //     }
+        //     setNegativeButton(android.R.string.no) {
+        //         sslLastAllow = false
+        //         sslLastTime = System.currentTimeMillis()
+        //         handler.cancel()
+        //     }
+        // }.show()
     }
 
-    override fun onReceivedClientCertRequest(view: WebView?, request: ClientCertRequest?) {
-        XLog.e("onReceivedClientCertRequest ${request?.host}  ${request?.keyTypes}  ${request?.principals}")
+    override fun onReceivedClientCertRequest(view: WebView?, request: ClientCertRequest) {
+        XLog.e("onReceivedClientCertRequest ${request.host}  ${request.keyTypes}  ${request.principals}")
 
-        // val prefs = view?.context?.prefs
-        // if (prefs.isDemoModeEnabled()) {
-        //     request.cancel()
-        //     return
-        // }
-        //
-        // val serverId = prefs.getActiveServerId()
-        // val alias = prefs.getStringOrNull(PrefKeys.buildServerKey(serverId, PrefKeys.SSL_CLIENT_CERT_PREFIX))
-        // Log.d(TAG, "Using alias $alias")
-        // if (alias == null) {
-        //     request.cancel()
-        //     return
-        // }
-        //
-        // GlobalScope.launch(Dispatchers.IO) {
-        //     try {
-        //         val chain = KeyChain.getCertificateChain(view.context, alias)
-        //         val privateKey = KeyChain.getPrivateKey(view.context, alias)
-        //         request.proceed(privateKey, chain)
-        //     } catch (e: KeyChainException) {
-        //         Log.d(TAG, "Error getting certificate chain or private key", e)
-        //         request.ignore()
-        //     } catch (e: InterruptedException) {
-        //         Log.d(TAG, "Error getting certificate chain or private key", e)
-        //         request.ignore()
-        //     }
-        // }
+        view?.apply {
+            // KeyChain.choosePrivateKeyAlias(context as Activity, { alias ->
+            //     if (alias == null) {
+            //         request.ignore()
+            //     } else {
+            //         val privateKey: PrivateKey? = KeyChain.getPrivateKey(context, alias)
+            //         val certificateChain: Array<X509Certificate>? = KeyChain.getCertificateChain(context, alias)
+            //         request.proceed(privateKey, certificateChain)
+            //     }
+            // }, arrayOf<String>(request.keyTypes!![0]), null, null, -1, null)
+
+            KeyChain.choosePrivateKeyAlias(context as Activity, { alias ->
+                if (alias == null) {
+                    request.ignore()
+                } else {
+                    val privateKey: PrivateKey?
+                    val certificateChain: Array<X509Certificate>?
+                    try {
+                        privateKey = KeyChain.getPrivateKey(context, alias)
+                        certificateChain = KeyChain.getCertificateChain(context, alias)
+                        request.proceed(privateKey, certificateChain)
+                    } catch (e: InterruptedException) {
+                        request.ignore()
+                    } catch (e: KeyChainException) {
+                        request.ignore()
+                    }
+                }
+            }, request.keyTypes, request.principals, request.host, request.port, null)
+        }
     }
 
     override fun onReceivedLoginRequest(

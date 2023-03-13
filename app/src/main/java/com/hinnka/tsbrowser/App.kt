@@ -2,10 +2,12 @@ package com.hinnka.tsbrowser
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.view.inputmethod.InputMethodManager
 import android.webkit.WebView
 import androidx.compose.material.SnackbarHostState
 import cc.ibooker.zkeepalivelib.ZKeepAlive
@@ -33,6 +35,7 @@ import java.util.*
 
 
 class App : Application() {
+    val imm by lazy { instance.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -51,8 +54,6 @@ class App : Application() {
 
         if (Settings.keepAlive) {
             ZKeepAlive.instance.register(this)
-        } else {
-            ZKeepAlive.instance.unRegister(this)
         }
 
         // DoKit.Builder(this)

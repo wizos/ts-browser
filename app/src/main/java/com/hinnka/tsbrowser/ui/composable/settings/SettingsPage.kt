@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LifecycleEventObserver
+import cc.ibooker.zkeepalivelib.ZKeepAlive
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.BuildConfig
 import com.hinnka.tsbrowser.PackageName
@@ -296,6 +297,11 @@ fun SettingsPage() {
                             checked = Settings.keepAliveState.value,
                             onCheckedChange = {
                                 Settings.keepAlive = it
+                                if (it && !ZKeepAlive.isKeepAlive){
+                                    ZKeepAlive.instance.register(App.instance)
+                                }else if (!it && ZKeepAlive.isKeepAlive){
+                                    ZKeepAlive.instance.unRegister(App.instance)
+                                }
                             }
                         )
                     }

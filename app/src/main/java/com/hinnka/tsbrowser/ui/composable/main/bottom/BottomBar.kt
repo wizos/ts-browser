@@ -71,9 +71,9 @@ fun BottomBar() {
                         // .padding(start = if (uiState.value == UIState.Search) 8.dp else 0.dp)
                         .padding(10.dp, 0.dp, 10.dp, 0.dp),
                 ) {
-                    AnimatedVisibility(visible = uiState.value == UIState.Main) {
-                        HomeButton()
-                    }
+                    // AnimatedVisibility(visible = uiState.value == UIState.Main) {
+                    //     HomeButton()
+                    // }
                     AnimatedVisibility(visible = uiState.value == UIState.TabList) {
                         CloseAll()
                     }

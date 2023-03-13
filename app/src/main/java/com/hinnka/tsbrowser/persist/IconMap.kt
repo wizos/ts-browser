@@ -57,7 +57,7 @@ object IconMap {
         return Base64.encodeToString(key.toByteArray(), Base64.URL_SAFE).trim()
     }
 
-    private fun fetch(context: Context, key: String, scheme: String) {
+    fun fetch(context: Context, key: String, scheme: String) {
         var iconReceived = false
         val webView = WebView(context)
         webView.webChromeClient = object : WebChromeClient() {
@@ -106,6 +106,56 @@ object IconMap {
         }
         webView.loadUrl("$scheme://$key/favicon.ico")
     }
+    fun fetchIconUrl(context: Context, key: String, url: String) {
+        var iconReceived = false
+        val webView = WebView(context)
+        val scheme = Uri.parse(url).scheme ?: "https"
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
+                logD("onReceivedIcon $icon")
+                if (!iconReceived) {
+                    icon?.let {
+                        iconReceived = true
+                        save(key, it)
+                    }
+                }
+            }
+        }
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(
+                view: WebView,
+                request: WebResourceRequest
+            ): Boolean {
+                webView.loadUrl(request.url.toString())
+                return true
+            }
+
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError
+            ) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (error.errorCode == ERROR_CONNECT && scheme == "https") {
+                        fetch(context, key, "http")
+                    }
+                }
+                super.onReceivedError(view, request, error)
+            }
+
+            override fun onReceivedSslError(
+                view: WebView?,
+                handler: SslErrorHandler?,
+                error: SslError?
+            ) {
+                super.onReceivedSslError(view, handler, error)
+                if (scheme == "https") {
+                    fetch(context, key, "http")
+                }
+            }
+        }
+        webView.loadUrl(url)
+    }
 
     private val memoryCache = mutableStateMapOf<String, Bitmap>()
 
@@ -113,13 +163,19 @@ object IconMap {
         val key = url.host ?: ""
         if (key.isBlank()) return null
         val cache = memoryCache[key] ?: diskCache[key]?.apply { memoryCache[key] = this }
+        // if (cache == null) {
+        //     fetch(App.instance, key, Uri.parse(url).scheme ?: "https")
+        // }
+        return cache
+    }
+    fun ready(url: String, key: String) {
+        val cache = memoryCache[key] ?: diskCache[key]?.apply { memoryCache[key] = this }
         if (cache == null) {
             fetch(App.instance, key, Uri.parse(url).scheme ?: "https")
         }
-        return cache
     }
 
-    private fun save(key: String, bitmap: Bitmap) {
+    fun save(key: String, bitmap: Bitmap) {
         ioScope.launch {
             memoryCache[key] = bitmap
             val name = generateName(key)

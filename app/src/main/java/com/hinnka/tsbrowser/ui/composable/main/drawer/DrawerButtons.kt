@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.BookmarkAdded
 import androidx.compose.material.icons.outlined.BookmarkAdd
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -18,15 +19,22 @@ import com.hinnka.tsbrowser.persist.Bookmark
 import com.hinnka.tsbrowser.persist.BookmarkType
 import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.ui.LocalViewModel
+import com.hinnka.tsbrowser.ui.home.UIState
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun RowScope.BackButton() {
+fun RowScope.BackButton(drawerState: com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState) {
     val tab by TabManager.currentTab
+    val scope = rememberCoroutineScope()
     IconButton(
         onClick = {
             tab?.onBackPressed()
+            if(tab?.canGoBackState?.value == false){
+                scope.launch {
+                    drawerState.close()
+                }
+            }
         },
         modifier = Modifier
             .weight(1f)
@@ -50,6 +58,27 @@ fun RowScope.ForwardButton() {
         enabled = tab?.canGoForwardState?.value == true,
     ) {
         Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Forward")
+    }
+}
+
+@Composable
+fun RowScope.HomeButton(drawerState: com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState) {
+    val tab by TabManager.currentTab
+    val scope = rememberCoroutineScope()
+
+    IconButton(
+        onClick = {
+            TabManager.currentTab.value?.goHome()
+            scope.launch {
+                drawerState.close()
+            }
+        },
+        modifier = Modifier
+            .weight(1f)
+            .height(48.dp),
+        enabled = !tab?.urlState?.value.equals("about:blank"),
+    ) {
+        Icon(imageVector = Icons.Outlined.Home, contentDescription = "Home")
     }
 }
 

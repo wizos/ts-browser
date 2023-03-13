@@ -11,11 +11,10 @@ import android.os.Build
 import android.os.Message
 import android.util.AttributeSet
 import android.view.*
-import android.webkit.CookieManager
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
-import android.webkit.WebView
+import android.view.inputmethod.InputMethodManager
+import android.webkit.*
 import android.widget.FrameLayout
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -31,10 +30,9 @@ import com.hinnka.tsbrowser.ui.composable.main.LongPressInfo
 import com.hinnka.tsbrowser.ui.home.MainActivity
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 import kotlin.coroutines.resume
+
 
 val longPressType = arrayOf(
     WebView.HitTestResult.EMAIL_TYPE,
@@ -52,6 +50,8 @@ class TSWebView @JvmOverloads constructor(
     private var origOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     val downloadHandler = DownloadHandler(context)
     var dataListener: WebDataListener? = null
+
+    var goForwardUrls = mutableListOf<String>()
 
 
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
@@ -90,18 +90,21 @@ class TSWebView @JvmOverloads constructor(
         }
         isSaveEnabled = true
 
-        setDownloadListener(downloadHandler)
-
         settings.apply {
             allowContentAccess = true
+            // 允许访问文件
             allowFileAccess = true
+            // 通过 file url 加载的 Javascript 读取其他的本地文件 .建议关闭
+            allowFileAccessFromFileURLs = false
+            // 允许通过 file url 加载的 Javascript 可以访问其他的源，包括其他的文件和 http，https 等其他的源
+            allowUniversalAccessFromFileURLs = true
             builtInZoomControls = true
             databaseEnabled = true
             displayZoomControls = false
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             domStorageEnabled = true
-            javaScriptCanOpenWindowsAutomatically = false
             javaScriptEnabled = true
+            javaScriptCanOpenWindowsAutomatically = false
             loadWithOverviewMode = true
             mediaPlaybackRequiresUserGesture = false
             useWideViewPort = true
@@ -118,8 +121,15 @@ class TSWebView @JvmOverloads constructor(
             userAgentString = Settings.userAgent.value
         }
 
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptThirdPartyCookies(this, Settings.acceptThirdPartyCookies)
+
+        // initForWeb()
+
         setDarkMode(Settings.darkMode)
         setIncognito(Settings.incognito)
+
+        setDownloadListener(downloadHandler)
 
         webChromeClient = TSChromeClient(this)
         webViewClient = TSWebClient(this)
@@ -127,10 +137,10 @@ class TSWebView @JvmOverloads constructor(
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
     }
 
-    init {
-        val cookieManager = CookieManager.getInstance()
-        cookieManager.setAcceptThirdPartyCookies(this, Settings.acceptThirdPartyCookies)
-    }
+    // init {
+    //     val cookieManager = CookieManager.getInstance()
+    //     cookieManager.setAcceptThirdPartyCookies(this, Settings.acceptThirdPartyCookies)
+    // }
 
     fun setDarkMode(dark: Boolean) {
         if (dark) {
@@ -247,7 +257,6 @@ class TSWebView @JvmOverloads constructor(
                     canvas.drawBitmap(windowBitmap, 0f, 0f, null)
                 } else {
                     canvas.drawBitmap(window.decorView.drawingCache, 0f, 0f, null)
-                    // window.decorView.draw(canvas)
                 }
             } else {
                 canvas.translate(-scrollX.toFloat(), -scrollY.toFloat())
@@ -258,12 +267,22 @@ class TSWebView @JvmOverloads constructor(
         }
     }
 
+    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+        val uri = request.url.toString()
+        if(goForwardUrls.isNotEmpty() && uri == goForwardUrls.first() && canGoForward()){
+            goForward()
+            goForwardUrls.removeFirst()
+            return true
+        }else{
+            goForwardUrls.clear()
+            return false
+        }
+    }
     override fun onProgressChanged(progress: Int) {
         dataListener?.progressState?.value = progress * 1.0f / 100
     }
 
     override fun onReceivedTitle(title: String?) {
-        // dataListener?.titleState?.value = if (title == "about:blank") context.getString(R.string.new_tab) else title ?: ""
         // 修复 web title 获取为空的问题
         dataListener?.titleState?.value = if (title == "about:blank") context.getString(R.string.new_tab) else title ?: copyBackForwardList().currentItem?.title ?: ""
     }
@@ -319,6 +338,16 @@ class TSWebView @JvmOverloads constructor(
             activity?.requestedOrientation = origOrientation
         }
         fullScreenView = null
+
+        //如果开启
+        if (App.instance.imm.isActive) {
+            //关闭软键盘，开启方法相同，这个方法是切换开启与关闭状态的
+            // App.instance.imm.toggleSoftInput(
+            //     InputMethodManager.SHOW_IMPLICIT,
+            //     InputMethodManager.HIDE_NOT_ALWAYS
+            // )
+            App.instance.imm.hideSoftInputFromWindow(applicationWindowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+        }
     }
 
     override fun onCreateWindow(resultMsg: Message): Boolean {
@@ -349,7 +378,6 @@ class TSWebView @JvmOverloads constructor(
     override fun onPageStarted(url: String, favicon: Bitmap?) {
         // 修复 web title 获取为空的问题
         dataListener?.titleState?.value = copyBackForwardList().currentItem?.title.toString()
-        // dataListener?.titleState?.value = copyBackForwardList()?.currentItem?.favicon
     }
 
     override fun onPageFinished(url: String) {

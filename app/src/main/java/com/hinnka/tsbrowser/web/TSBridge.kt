@@ -2,14 +2,19 @@ package com.hinnka.tsbrowser.web
 
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
+import android.graphics.Bitmap
+import android.net.Uri
 import android.webkit.JavascriptInterface
 import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.App
-import com.hinnka.tsbrowser.ext.activity
-import com.hinnka.tsbrowser.ext.mainScope
-import com.hinnka.tsbrowser.ext.textFromLocalOrAssets
+import com.hinnka.tsbrowser.R
+import com.hinnka.tsbrowser.ext.*
+import com.hinnka.tsbrowser.persist.IconMap
 import com.hinnka.tsbrowser.persist.Settings
+import com.hinnka.tsbrowser.util.savePictures
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import java.io.File
 
 class TSBridge(val webView: TSWebView) {
     private val ANY = "any"
@@ -99,6 +104,54 @@ class TSBridge(val webView: TSWebView) {
             return ""
         }else{
             return App.instance.textFromLocalOrAssets(paths)
+        }
+    }
+
+    @JavascriptInterface
+    fun onFetchIconHref(url: String?, href: String?) {
+        XLog.e("取到iconurl：" + url + ", " + href)
+        if(url.isNullOrBlank() || href.isNullOrBlank()){
+            XLog.e("url 为空")
+        }else{
+            val key = url.host ?: ""
+            if (key.isNotBlank()) {
+                mainScope.launch {
+                    IconMap.fetchIconUrl(App.instance, key, href)
+                }
+            }
+        }
+    }
+    @JavascriptInterface
+    fun onFetchIconData(url:String?, data: String?) {
+        XLog.e("取到icon数据：" + url + ", " + data)
+        if(url.isNullOrBlank() || data.isNullOrBlank()){
+            XLog.e("数据 为空")
+        }else{
+            val key = url.host ?: ""
+            if (key.isNotBlank()) {
+                ioScope.launch {
+                    val bitmap: Bitmap? = data.dataUrlToBitmap()
+                    if(bitmap != null){
+                        IconMap.save(key, bitmap)
+                    }else{
+                        IconMap.ready(url, key)
+                    }
+                }
+            }
+        }
+    }
+    @JavascriptInterface
+    fun onFetchIconFail(url:String?) {
+        XLog.e("取到 url：" + url)
+        if(url.isNullOrBlank()){
+            XLog.e("url 为空")
+        }else{
+            val key = url.host ?: ""
+            if (key.isNotBlank()) {
+                mainScope.launch {
+                    IconMap.fetch(App.instance, key, Uri.parse(url).scheme ?: "https")
+                }
+            }
         }
     }
 }

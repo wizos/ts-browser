@@ -7,3 +7,6 @@ LoreadBridge.runJsFile("js/loread.common.js");
 LoreadBridge.runJsFile("js/zepto.min.js");
 LoreadBridge.runJsFile("js/loread.video.controller.js");
 LoreadBridge.runJsFile("js/tsbridge.js");
+
+LoreadBridge.runJsFile("js/loread.favicon.js");
+

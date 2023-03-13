@@ -21,6 +21,7 @@ interface UIController {
     fun onPageStarted(url: String, favicon: Bitmap?)
     fun onPageFinished(url: String)
     fun doUpdateVisitedHistory(url: String, isReload: Boolean)
+    fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean
 }
 
 suspend fun UIController.requestPermission(permission: String): Boolean {

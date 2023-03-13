@@ -120,6 +120,14 @@ data class Tab(
 
     fun goHome() {
         view.post {
+            view.goForwardUrls.clear()
+            val backForwardList = view.copyBackForwardList()
+            for (i in 0 until backForwardList.size) {
+                backForwardList.getItemAtIndex(i)?.let {
+                    view.goForwardUrls.add(it.url)
+                }
+            }
+
             view.loadUrl("about:blank")
         }
     }
@@ -135,6 +143,9 @@ data class Tab(
 
     fun onBackPressed(): Boolean {
         if (view.canGoBack()) {
+            view.url?.let {
+                view.goForwardUrls.add(it)
+            }
             view.goBack()
             return true
         }
@@ -148,6 +159,17 @@ data class Tab(
 
     fun goForward() {
         if (view.canGoForward()) {
+            val backForwardList = view.copyBackForwardList()
+            val forwardIndex = backForwardList.currentIndex + 1
+            // if (forwardIndex < backForwardList.size){
+                backForwardList.getItemAtIndex(forwardIndex)?.let {
+                    if (view.goForwardUrls.isNotEmpty() && view.goForwardUrls.first() == it.url){
+                        view.goForwardUrls.removeFirst()
+                    }else{
+                        view.goForwardUrls.clear()
+                    }
+                }
+            // }
             view.goForward()
         }
     }

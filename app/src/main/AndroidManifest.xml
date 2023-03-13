@@ -14,6 +14,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
+    <!-- 添加 Android 11 存储权限注册到清单文件中 -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -21,7 +23,80 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.GET_TASKS"/>
 
+    <!--声明使用 KeyChain API 的权限-->
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+
+    <!--忽略电量优化-->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+
+    <!-- 允许访问振动设备 -->
+    <!--<uses-permission android:name="android.permission.VIBRATE" />-->
+    <!--&lt;!&ndash; 网络相关权限；MTA统计必选权限 &ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.INTERNET" />-->
+    <!--&lt;!&ndash; 查看帐户需要权限 &ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.GET_ACCOUNTS" />-->
+    <!--&lt;!&ndash; 添加帐户需要权限 &ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />-->
+    <!--<uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />-->
+    <!--&lt;!&ndash;android:maxSdkVersion="22"&ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />-->
+    <!--<uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />-->
+    <!--<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />-->
+    <!--<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />-->
+    <!--<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />-->
+    <!--<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />-->
+
+    <!--&lt;!&ndash;声明使用 KeyChain API 的权限&ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.USE_CREDENTIALS" />-->
+
+    <!--&lt;!&ndash; 允许安装未知来源的app &ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />-->
+    <!--&lt;!&ndash; <uses-permission android:name="android.permission.WRITE_SETTINGS" /> &ndash;&gt;-->
+    <!--&lt;!&ndash; 挂载、反挂载外部文件系统 &ndash;&gt;-->
+    <!--&lt;!&ndash; <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" /> &ndash;&gt;-->
+    <!--&lt;!&ndash; 读取系统底层日志 &ndash;&gt;-->
+    <!--&lt;!&ndash; <uses-permission android:name="android.permission.READ_LOGS" /> &ndash;&gt;-->
+    <!--&lt;!&ndash; 允许程序在手机屏幕关闭后后台进程仍然运行 &ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.WAKE_LOCK" />-->
+    <!--<uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />-->
+    <!--&lt;!&ndash; [尝试] 防止左右滑动时的报错 &ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />-->
+    <!--&lt;!&ndash; 通过WiFi或移动基站的方式获取用户错略的经纬度信息，定位精度大概误差在30~1500米 &ndash;&gt;-->
+    <!--&lt;!&ndash; <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> &ndash;&gt;-->
+    <!--&lt;!&ndash; 读取，写出外置SD卡内容的权限该目录 &ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />-->
+    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />-->
+    <!--&lt;!&ndash; 添加 Android 11 存储权限注册到清单文件中 &ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />-->
+    <!--<uses-permission android:name="android.permission.WAKE_LOCK" />-->
+    <!--&lt;!&ndash;前台服务&ndash;&gt;-->
+    <!--<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />-->
+    <!--<uses-permission android:name="android.permission.GET_TASKS"/>-->
+
+    <!--<queries>-->
+    <!--    <intent>-->
+    <!--        <action android:name="android.intent.action.SEND" />-->
+    <!--        <data android:mimeType="*/*" />-->
+    <!--    </intent>-->
+
+    <!--    <intent>-->
+    <!--        <action android:name="android.intent.action.VIEW" />-->
+    <!--        <data android:scheme="*" />-->
+    <!--    </intent>-->
+    <!--    &lt;!&ndash;<category android:name="android.intent.category.BROWSABLE" />&ndash;&gt;-->
+    <!--    <intent>-->
+    <!--        <action android:name="android.support.customtabs.action.CustomTabsService" />-->
+    <!--    </intent>-->
+
+    <!--    <intent>-->
+    <!--        <action android:name="android.intent.action.TTS_SERVICE" />-->
+    <!--    </intent>-->
+    <!--</queries>-->
+
     <!--android：usesCleartextTraffic 指示应用程序是否打算使用明文网络流量，例如明文HTTP。目标API级别为27或更低的应用程序的默认值为“ true”。面向API级别28或更高级别的应用默认为“ false”。-->
+
+    <!--android:appComponentFactory="com.hinnka.tsbrowser"  ,android:appComponentFactory-->
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -29,19 +104,41 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+
+        android:fullBackupOnly="true"
+        android:extractNativeLibs="true"
+        android:requestLegacyExternalStorage="true"
+        android:largeHeap="true"
+        android:persistent="true"
+        android:hardwareAccelerated="true"
+
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.TSBrowser"
-        tools:targetApi="m">
+        android:networkSecurityConfig="@xml/network_security_config"
+        tools:replace="android:networkSecurityConfig"
+        tools:targetApi="q">
 
-        <!--android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|keyboard"-->
-        <!--android:windowSoftInputMode="stateHidden|adjustResize"-->
+        <!--tools:replace="android:networkSecurityConfig,android:appComponentFactory"-->
+        <!--tools:targetApi="q"-->
+        <!--tools:targetApi="m"-->
+        <!--启用安全浏览检查。避免 google 收集数据 -->
+        <meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="false" />
+        <!--停用错误数据的收集-->
+        <meta-data android:name="android.webkit.WebView.MetricsOptOut" android:value="true" />
+
+        <!--<meta-data android:name="android.max_aspect" android:value="2.3"/>-->
+
+
         <activity
             android:name=".ui.home.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:windowSoftInputMode="stateHidden|adjustResize">
+
+            <!--默认情况下，谷歌会私自上传WebView的崩溃日志，用来帮助谷歌更改的对WebView进行改善，对于每个实例化了WebView的应用程序，数据的收集是以每个应用为基础的。单个应用程序可以通过在其清单中加入以下标签来选择不使用该功能-->
+            <meta-data android:name="android.webkit.WebView.MetricsOptOut" android:value="true" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -130,9 +227,6 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
 
-            <!--默认情况下，谷歌会私自上传WebView的崩溃日志，用来帮助谷歌更改的对WebView进行改善，对于每个实例化了WebView的应用程序，数据的收集是以每个应用为基础的。单个应用程序可以通过在其清单中加入以下标签来选择不使用该功能-->
-            <meta-data android:name="android.webkit.WebView.MetricsOptOut" android:value="true" />
-
             <meta-data android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
@@ -170,14 +264,6 @@
                 <action android:name="${applicationId}.action.secret" />
             </intent-filter>
         </receiver>
-
-        <meta-data android:name="android.webkit.WebView.MetricsOptOut"
-            android:value="false" />
-        <meta-data
-            android:name="android.max_aspect"
-            android:value="2.3"/>
-
-
 
 
         <!--1像素Activity-->
