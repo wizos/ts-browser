@@ -5,10 +5,13 @@ import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +47,14 @@ import com.hinnka.tsbrowser.ui.composable.widget.statusBarHeight
 import com.hinnka.tsbrowser.ui.home.UIState
 import com.hinnka.tsbrowser.ui.LocalViewModel
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 //TODO refactor animation
@@ -60,45 +71,114 @@ fun TabList() {
     val resetAnim = remember { mutableStateOf(false) }
     val listState = rememberLazyGridState()
     val statusBarHeight = statusBarHeight()
-    // val listState2 = rememberLazyListState()
-    //
+
+    // val gridState = rememberLazyGridState()
+    // val draggingItemIndex = remember { mutableStateOf(-1)}
+
     // var position by remember {
     //     mutableStateOf<Float?>(null)
     // }
+
+    // LazyVerticalGrid(
+    //     columns = GridCells.Fixed(2),
+    //     modifier = Modifier
+    //         .background(MaterialTheme.colors.surface)
+    //         .fillMaxSize()
+    //         // .pointerInput(Unit) {
+    //         //     detectDragGesturesAfterLongPress(
+    //         //         onDrag = {change, dragAmount ->
+    //         //         },
+    //         //         onDragStart = {offset ->
+    //         //             listState.layoutInfo.visibleItemsInfo
+    //         //                 .firstOrNull { offset.y.toInt() in it.offset.y..(it.offset.x + it.size.height) }
+    //         //                 ?.also {
+    //         //                     position = it.offset.y + it.size.height / 2f
+    //         //                 }
+    //         //
+    //         //             listState2.layoutInfo.visibleItemsInfo
+    //         //                 .firstOrNull { offset.y.toInt() in it.offset..it.offset + it.size }
+    //         //                 ?.also {
+    //         //                     position = it.offset + it.size / 2f
+    //         //                 }
+    //         //         },
+    //         //         onDragEnd = {
+    //         //             isLong = false
+    //         //             Log.d("senl", "onDragEnd")
+    //         //         },
+    //         //         onDragCancel = {
+    //         //             isLong = false
+    //         //             Log.d("senl", "onDragEnd")
+    //         //         }
+    //         //     )
+    //         // }
+    //             ,
+    //     state = listState,
+    //     verticalArrangement = Arrangement.Bottom,
+    //     contentPadding = PaddingValues(8.dp),
+    // ) {
+    //     items(tabs.size) {index ->
+    //         val tab = tabs[index]
+    //         val isDragging = index == draggingItemIndex.value
+    //         val draggableState = rememberDraggableState {
+    //             draggingItemIndex.value = index
+    //         }
+    //         Box(modifier = Modifier.wrapContentSize().draggable(
+    //             orientation = Orientation.Vertical, // 支持上下左右拖拽
+    //             state = draggableState,
+    //             onDragStarted = {
+    //                 draggingItemIndex.value = index
+    //             },
+    //             onDragStopped = {
+    //                 if (draggingItemIndex.value != -1) {
+    //                     // onItemMoved(draggingItemIndex.value, index)
+    //                     XLog.d("拖动的值“" + draggingItemIndex.value + ", " + index)
+    //                     draggingItemIndex.value = -1
+    //                 }
+    //             }
+    //         )){
+    //             Card(
+    //                 elevation = 2.dp, modifier = Modifier
+    //                     .fillMaxWidth()
+    //                     .aspectRatio(2f / 3f)
+    //                     .padding(8.dp)
+    //                     .onGloballyPositioned { coor ->
+    //                         if (tab.info.isActive && (showAnim.value || resetAnim.value)) {
+    //                             val width = coor.size.width - density.run { 4.dp.toPx() }
+    //                             val height = coor.size.height - density.run { 32.dp.toPx() }
+    //                             targetSize.value = IntSize(width.toInt(), height.toInt())
+    //                             val offset = coor.positionInRoot()
+    //                             val x = (offset.x + density.run { 2.dp.toPx() }).toInt()
+    //                             val y =
+    //                                 (offset.y + density.run { (30.dp - statusBarHeight).toPx() }).toInt()
+    //                             targetOffset.value = IntOffset(x, y)
+    //                         }
+    //                     }
+    //
+    //             ) {
+    //                 TabItem(tab = tab, onTap = {
+    //                     val tab = tabs[index]
+    //                     tab.active()
+    //                     if (tab.previewState.value != null) {
+    //                         hideAnim.value = true
+    //                         targetOffset.value = IntOffset.Zero
+    //                         targetSize.value = IntSize(screenWidth, screenHeight)
+    //                     } else {
+    //                         viewModel.uiState.value = UIState.Main
+    //                     }
+    //                 })
+    //             }
+    //         }
+    //
+    //     }
+    // }
+
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .background(MaterialTheme.colors.surface)
             .fillMaxSize()
-            // .pointerInput(Unit) {
-            //     detectDragGesturesAfterLongPress(
-            //         onDrag = {change, dragAmount ->
-            //         },
-            //         onDragStart = {offset ->
-            //             listState.layoutInfo.visibleItemsInfo
-            //                 .firstOrNull { offset.y.toInt() in it.offset.y..(it.offset.x + it.size.height) }
-            //                 ?.also {
-            //                     position = it.offset.y + it.size.height / 2f
-            //                 }
-            //
-            //             listState2.layoutInfo.visibleItemsInfo
-            //                 .firstOrNull { offset.y.toInt() in it.offset..it.offset + it.size }
-            //                 ?.also {
-            //                     position = it.offset + it.size / 2f
-            //                 }
-            //         },
-            //         onDragEnd = {
-            //             isLong = false
-            //             Log.d("senl", "onDragEnd")
-            //         },
-            //         onDragCancel = {
-            //             isLong = false
-            //             Log.d("senl", "onDragEnd")
-            //         }
-            //     )
-            // }
-                ,
+        ,
         state = listState,
         verticalArrangement = Arrangement.Bottom,
         contentPadding = PaddingValues(8.dp),
@@ -124,9 +204,9 @@ fun TabList() {
                     }
             ) {
                 TabItem(tab = tab, onTap = {
-                    val tab = tabs[it]
-                    tab.active()
-                    if (tab.previewState.value != null) {
+                    val clickedTab = tabs[it]
+                    clickedTab.active()
+                    if (clickedTab.previewState.value != null) {
                         hideAnim.value = true
                         targetOffset.value = IntOffset.Zero
                         targetSize.value = IntSize(screenWidth, screenHeight)
@@ -143,6 +223,7 @@ fun TabList() {
     LaunchedEffect(listState) {
         listState.scrollToItem( tabs.indexOf(tab) )
     }
+
     val offsetAnimate = animateIntOffsetAsState(
         targetValue = targetOffset.value,
         animationSpec = if (resetAnim.value) tween(0) else spring()
@@ -262,10 +343,12 @@ fun TabItem(tab: Tab, onTap: () -> Unit) {
                                     .active()
                             }
                             else -> {
-                                TabManager.newTab(context).apply {
-                                    goHome()
-                                    active()
-                                }
+                                TabManager
+                                    .newTab(context)
+                                    .apply {
+                                        goHome()
+                                        active()
+                                    }
                                 viewModel.uiState.value = UIState.Main
                             }
                         }

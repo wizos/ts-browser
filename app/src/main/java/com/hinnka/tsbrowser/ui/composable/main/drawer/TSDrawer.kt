@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.hinnka.tsbrowser.App
+import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState
 
 
@@ -25,8 +27,12 @@ fun TSDrawer(drawerState: BottomDrawerState) {
             .fillMaxWidth()
     ) {
         BackButton(drawerState = drawerState)
-        // ForwardButton()
-        HomeButton(drawerState = drawerState)
+        // val tab by TabManager.currentTab
+        // if (tab?.isHome == false){
+            HomeButton(drawerState = drawerState)
+        // } else {
+        //     ForwardButton(drawerState = drawerState)
+        // }
         AddBookmarkButton(drawerState = drawerState)
         ShareButton(drawerState = drawerState)
     }

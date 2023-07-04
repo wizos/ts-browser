@@ -47,6 +47,20 @@ object TabManager {
             tabs.add(this)
         }
     }
+    fun newTabInsert(context: Context, webView: TSWebView = TSWebView(context)): Tab {
+        val info = TabInfo()
+        return Tab(info, webView).apply {
+            ioScope.launch {
+                AppDatabase.instance.tabDao().insert(info).apply { info.id = this }
+            }
+            val index = tabs.indexOf(currentTab.value)
+            if (index == -1){
+                tabs.add(this)
+            }else{
+                tabs.add(index + 1, this)
+            }
+        }
+    }
 
     fun find(url: String):Tab? {
         tabs.find { it.info.url == url }?.let {

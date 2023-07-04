@@ -28,6 +28,7 @@ import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.ext.*
+import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.ui.base.BaseActivity
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import com.hinnka.tsbrowser.util.HttpsUtils
@@ -49,7 +50,6 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 
 class DownloadHandler(val context: Context) : DownloadListener {
 
@@ -61,7 +61,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
         OpenReceiver.register(context)
     }
 
-    fun onDownload(url: String, contentDisposition: String? = "", mimetype: String? = "", contentLength: Long = 0) {
+    fun onDownloadWithDialog(url: String, userAgent: String?, contentDisposition: String?, mimetype: String?, contentLength: Long) {
         XLog.d("下载：$url, $contentDisposition, $mimetype, $contentLength")
         // if (tryOpenStream(url, contentDisposition, mimetype)) {
         //     return
@@ -84,6 +84,15 @@ class DownloadHandler(val context: Context) : DownloadListener {
             if (contentLength <= 0 && url.isHttpOrHttpsUrl()) {
                 val requestBuilder = Request.Builder()
                 requestBuilder.get().url(url)
+                CookieManager.getInstance().getCookie(url)?.let {
+                    requestBuilder.header("cookie", it)
+                }
+                userAgent?.let {
+                    requestBuilder.header("user-agent", it)
+                }
+                mimetype?.let {
+                    requestBuilder.header("accept", it)
+                }
                 val simpleNetworkClient = OkHttpClient.Builder()
                     .readTimeout(30, TimeUnit.SECONDS)
                     .writeTimeout(30, TimeUnit.SECONDS)
@@ -114,7 +123,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
                     setMessage(context.getString(R.string.download_message, guessName, downloadSize))
                     setPositiveButton(android.R.string.ok) {
                         try {
-                            download(url, guessName, mimetype)
+                            download(url, userAgent, mimetype, guessName)
                         } catch (e: Exception) {
                         }
                     }
@@ -132,170 +141,8 @@ class DownloadHandler(val context: Context) : DownloadListener {
         contentLength: Long
     ) {
         XLog.d("下载：$url, $userAgent, $contentDisposition, $mimetype, $contentLength")
-        onDownload(url, contentDisposition, mimetype, contentLength)
-
-        // if (tryOpenStream(url, contentDisposition, mimetype)) {
-        //     return
-        // }
-
-        // ioScope.launch {
-        //     // val guessName = getFileName(url, contentDisposition, mimetype)
-        //     val guessName:String = if(url.isDataUrl()){
-        //         System.currentTimeMillis().toString() + url.dataUrlToByteArray()?.ext()
-        //     }else{
-        //         getFileName(url, contentDisposition, mimetype)
-        //     }
-        //
-        //     val downloadSize = if (contentLength > 0) {
-        //         formatFileSize(context, contentLength)
-        //     } else {
-        //         context.getString(R.string.unknown_size)
-        //     }
-        //
-        //     requestPermissionIfNeeded {
-        //         AlertBottomSheet.Builder(context).apply {
-        //             setMessage(context.getString(R.string.download_message, guessName, downloadSize))
-        //             setPositiveButton(android.R.string.ok) {
-        //                 try {
-        //                     download(url, guessName, mimetype)
-        //                 } catch (e: Exception) {
-        //                 }
-        //             }
-        //             setNegativeButton(android.R.string.cancel) {}
-        //         }.show()
-        //     }
-        // }
+        onDownloadWithDialog(url, userAgent, contentDisposition, mimetype, contentLength)
     }
-
-    // private fun tryOpenStream(
-    //     url: String,
-    //     contentDisposition: String?,
-    //     mimetype: String?
-    // ): Boolean {
-    //     val type = mimetype ?: return false
-    //     if (contentDisposition == null
-    //         || !contentDisposition.regionMatches(0, "attachment", 0, 10, true)
-    //     ) {
-    //         val intent = Intent(Intent.ACTION_VIEW)
-    //         intent.setDataAndType(Uri.parse(url), type)
-    //         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    //         try {
-    //             context.startActivity(intent)
-    //             return true
-    //         } catch (e: Exception) {
-    //         }
-    //     }
-    //     return false
-    // }
-
-
-    private val pFileName1 = Pattern.compile("attachment;\\s*filename\\s*=\\s*(\"?)([^\";]*)(\\1\\s*;|\\1\\s*\$)", Pattern.CASE_INSENSITIVE)
-    private val pFileName2 = Pattern.compile("attachment;\\s*filename\\s*\\*\\s*=\\s*([^\";]*)'[^\"]*'([^\"]*)(\\s*;|\\s*\$)", Pattern.CASE_INSENSITIVE)
-    //
-    // private fun getFileName(url: String = "", contentDisposition: String?, mimeType: String?): String {
-    //     var fileNameByGuess: String? = null
-    //     var encoding: String? = null
-    //
-    //     XLog.d("猜测文件名：$url -- $mimeType -- $contentDisposition")
-    //     // 处理会把 epub 文件，识别为 bin 文件的 bug：https://blog.csdn.net/imesong/article/details/45568697
-    //     if (!contentDisposition.isNullOrBlank()) {
-    //         var matcher = pFileName1.matcher(contentDisposition)
-    //         if (matcher.find()) {
-    //             matcher.group(2)?.also {
-    //                 fileNameByGuess = it
-    //             }
-    //         } else {
-    //             matcher = pFileName2.matcher(contentDisposition)
-    //             if (matcher.find()) {
-    //                 encoding = matcher.group(1)
-    //                 matcher.group(2)?.also {
-    //                     fileNameByGuess = it
-    //                 }
-    //             }
-    //         }
-    //         XLog.d("猜测文件名B：$url -- $$fileNameByGuess")
-    //         if (fileNameByGuess.isNullOrBlank() || fileNameByGuess?.contains(".") == false) {
-    //             fileNameByGuess = URLUtil.guessFileName(url, contentDisposition, mimeType)
-    //             XLog.d("猜测文件名C：$url -- $$fileNameByGuess")
-    //         }
-    //     }
-    //
-    //     XLog.d("猜测文件名D：$url -- $$fileNameByGuess")
-    //     if (fileNameByGuess.isNullOrBlank() || fileNameByGuess?.contains(".") == false) {
-    //         // 从路径中获取
-    //         fileNameByGuess = getFileName(url)
-    //     }
-    //
-    //     if(encoding.isNullOrBlank()){
-    //         encoding = "UTF-8"
-    //     }
-    //
-    //     XLog.d("猜测文件名E：$url -- $fileNameByGuess")
-    //
-    //     try {
-    //         fileNameByGuess = URLDecoder.decode(fileNameByGuess, encoding)
-    //     } catch (e: UnsupportedEncodingException) {
-    //         e.printStackTrace()
-    //     }
-    //
-    //     XLog.d("猜测文件名F：$url -- $fileNameByGuess")
-    //
-    //     if(fileNameByGuess.isNullOrBlank()){
-    //         return System.currentTimeMillis().toString()
-    //     }else{
-    //         return fileNameByGuess!!
-    //     }
-    // }
-
-    // suspend fun guessFileName(url: String?, contentDisposition: String? = "", mimeType: String? = ""): String {
-    //     var fileName: String? = null
-    //     var encoding: String? = null
-    //
-    //     XLog.d("猜测文件名A：$url -- $mimeType -- $contentDisposition")
-    //     // 1、优先依靠 contentDisposition 来解析名字
-    //     // 处理会把 epub 文件，识别为 bin 文件的 bug：https://blog.csdn.net/imesong/article/details/45568697
-    //     if (!contentDisposition.isNullOrBlank()) {
-    //         var matcher = pFileName1.matcher(contentDisposition)
-    //         if (matcher.find()) {
-    //             fileName = matcher.group(2)
-    //         } else {
-    //             matcher = pFileName2.matcher(contentDisposition)
-    //             if (matcher.find()) {
-    //                 encoding = matcher.group(1)
-    //                 fileName = matcher.group(2)
-    //             }
-    //         }
-    //         XLog.d("猜测文件名B：$url -- $$fileName")
-    //
-    //         if (fileName.isNullOrBlank() || !fileName.contains(".")) {
-    //             fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
-    //             XLog.d("猜测文件名C：$url -- $$fileName")
-    //         }
-    //         fileName = fileName?.let { decodeFileName(it, encoding) }
-    //         XLog.d("猜测文件名E：$url -- $fileName")
-    //     }
-    //
-    //     if (!url.isNullOrBlank()) {
-    //         // 2、否则依靠 url 本身来解析名字
-    //         if (fileName.isNullOrBlank() || !fileName.contains(".")) {
-    //             if(url.isDataUrl()){
-    //                 url.hashCode().toString() + url.dataUrlToByteArray()?.ext()
-    //             }else{
-    //                 fileName = url.guessFileName()
-    //                 fileName = decodeFileName(fileName, encoding)
-    //             }
-    //             XLog.d("猜测文件名D：$url -- $$fileName")
-    //         }
-    //     }
-    //
-    //     XLog.d("猜测文件名F：$url -- $fileName")
-    //
-    //     if(fileName.isNullOrBlank()){
-    //         return ""
-    //     }else{
-    //         return fileName
-    //     }
-    // }
 
     private fun decodeFileName(fileName: String, encoding: String?): String{
         try {
@@ -343,8 +190,6 @@ class DownloadHandler(val context: Context) : DownloadListener {
 
         if ( (extIndex < 0 || saveName.length - extIndex > 5) && !ext.isNullOrBlank() ){
             saveName += ext
-            // if (!saveName.endsWith(ext)) {
-            // }
         }
         return Task(
             url = url,
@@ -355,10 +200,10 @@ class DownloadHandler(val context: Context) : DownloadListener {
     }
 
     fun downloadImage(url: String) {
-        download(url, guessFileName(url), null)
+        download(url, TabManager.currentTab.value?.view?.settings?.userAgentString, null, guessFileName(url))
     }
 
-    private fun download(url: String, guessName: String, mimetype: String?) {
+    private fun download(url: String, userAgent: String?, mimetype: String?, guessName: String) {
         if(url.isDataUrl()){
             ioScope.launch {
                 val bitmap:ByteArray? = url.dataUrlToByteArray()
@@ -396,7 +241,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
         }else if(url.isM3U8Url()){
             byM3U8(context, url, guessName)
         }else {
-            bySystem(context, url, guessName)
+            bySystem(context, url, userAgent, mimetype, guessName)
         }
     }
 
@@ -438,7 +283,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
     }
 
     // 作者：落英坠露 ,链接：https://www.jianshu.com/p/6e38e1ef203a
-    private fun bySystem(context: Context, url: String, fileName: String) {
+    private fun bySystem(context: Context, url: String, userAgent: String?, mimetype: String?, fileName: String) {
         // 方法2、使用系统的下载服务
         // 指定下载地址
         val request = DownloadManager.Request(Uri.parse(url))
@@ -460,6 +305,10 @@ class DownloadHandler(val context: Context) : DownloadListener {
         // 允许下载的网路类型
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
 
+        val cookie = CookieManager.getInstance().getCookie(url)
+        request.addRequestHeader("Cookie", cookie)
+        request.addRequestHeader("User-Agent", userAgent);
+        request.addRequestHeader("Accept", mimetype);
         // 设置下载文件保存的路径和文件名。
         // Content-disposition 是 MIME 协议的扩展，MIME 协议指示 MIME 用户代理如何显示附加的文件。当 Internet Explorer 接收到头时，它会激活文件下载对话框，它的文件名框自动填充了头中指定的文件名。（请注意，这是设计导致的；无法使用此功能将文档保存到用户的计算机上，而不向用户询问保存位置。）
         // XLog.i("下载", "文件名：" + fileName);

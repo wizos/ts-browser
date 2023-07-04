@@ -13,6 +13,7 @@ import androidx.compose.material.SnackbarHost
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.elvishew.xlog.XLog
@@ -21,6 +22,7 @@ import com.hinnka.tsbrowser.ext.logD
 import com.hinnka.tsbrowser.ext.removeFromParent
 import com.hinnka.tsbrowser.persist.Settings
 import com.hinnka.tsbrowser.tab.TabManager
+import com.hinnka.tsbrowser.tab.active
 import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.composable.main.bottom.BottomBar
 import com.hinnka.tsbrowser.ui.composable.welcome.SecretWelcome
@@ -96,9 +98,72 @@ fun MainView() {
 @Composable
 fun WebView() {
     val tab = TabManager.currentTab.value
+    val context = LocalContext.current
     TSBackHandler(
-        enabled = tab?.canGoBackState?.value == true,
-        onBack = { tab?.onBackPressed() }) {
+        enabled = tab?.canGoBackState?.value == true || (TabManager.tabs.size > 1 && tab?.isHome == true), //TabManager.tabs.size > 1 || tab?.isHome == false,
+        onBack = {
+            // tab?.onBackPressed()
+
+            tab?.let {
+                if (it.canGoBackState.value){
+                    it.onBackPressed()
+                }else{
+                    if (it.isHome){
+                        val index = TabManager.tabs.indexOf(tab)
+                        TabManager.remove(it)
+                        when {
+                            TabManager.tabs.size > index -> {
+                                TabManager.tabs[index].active()
+                            }
+                            TabManager.tabs.isNotEmpty() -> {
+                                TabManager.tabs
+                                    .last()
+                                    .active()
+                            }
+                            else -> {
+                            }
+                        }
+                    }else{
+                        // it.goHome()
+                        // it.view.clearHistory()
+                        val index = TabManager.tabs.indexOf(tab) - 1
+                        if (index < 0){
+                            when {
+                                TabManager.tabs.isNotEmpty() -> {
+                                    TabManager.tabs
+                                        .last()
+                                        .active()
+                                }
+                                else -> {
+                                    // TabManager
+                                    //     .newTab(context)
+                                    //     .apply {
+                                    //         goHome()
+                                    //         active()
+                                    //     }
+                                }
+                            }
+                        }else{
+                            when {
+                                TabManager.tabs.size > index -> {
+                                    TabManager.tabs[index].active()
+                                }
+                                TabManager.tabs.isNotEmpty() -> {
+                                    TabManager.tabs
+                                        .last()
+                                        .active()
+                                }
+                                else -> {
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+
+        }
+    ) {
 
         AndroidView(
             modifier = Modifier.fillMaxSize(),

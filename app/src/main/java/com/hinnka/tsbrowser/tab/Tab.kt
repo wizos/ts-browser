@@ -44,7 +44,7 @@ data class Tab(
                     request: WebResourceRequest
                 ): Boolean {
                     val url = request.url
-                    TabManager.newTab(view.context).apply {
+                    TabManager.newTabInsert(view.context).apply {
                         parentTab = this@Tab
                         loadUrl(url.toString())
                         active()

@@ -117,9 +117,11 @@ fun OpenInNewTab(info: LongPressInfo) {
     val context = LocalContext.current
     DropdownMenuItem(onClick = {
         info.hidePopup()
-        TabManager.newTab(context).apply {
+        TabManager.newTabInsert(context).apply {
+            parentTab = TabManager.currentTab.value
             loadUrl(info.extra)
             active()
+            canGoBackState.value = view.canGoBack() || parentTab != null
         }
     }) {
         Text(text = stringResource(id = R.string.open_in_new_tab))
@@ -131,8 +133,10 @@ fun OpenInBackgroundTab(info: LongPressInfo) {
     val context = LocalContext.current
     DropdownMenuItem(onClick = {
         info.hidePopup()
-        TabManager.newTab(context).apply {
+        TabManager.newTabInsert(context).apply {
+            parentTab = TabManager.currentTab.value
             loadUrl(info.extra)
+            canGoBackState.value = view.canGoBack() || parentTab != null
         }
     }) {
         Text(text = stringResource(id = R.string.open_in_background_tab))

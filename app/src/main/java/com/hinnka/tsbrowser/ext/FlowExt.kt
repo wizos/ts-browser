@@ -44,7 +44,6 @@ fun <T> Flow<T>.observeAsState(initial: T, coroutineContext: CoroutineContext = 
     }.collectAsState(initial = initial, coroutineContext)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 fun <T> Flow<T>.flowWithLifecycle(
     lifecycle: Lifecycle,
 ): Flow<T> = callbackFlow {

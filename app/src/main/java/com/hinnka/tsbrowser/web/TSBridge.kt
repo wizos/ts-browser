@@ -7,14 +7,10 @@ import android.net.Uri
 import android.webkit.JavascriptInterface
 import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.App
-import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.ext.*
 import com.hinnka.tsbrowser.persist.IconMap
 import com.hinnka.tsbrowser.persist.Settings
-import com.hinnka.tsbrowser.util.savePictures
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import java.io.File
 
 class TSBridge(val webView: TSWebView) {
     private val ANY = "any"
@@ -62,7 +58,7 @@ class TSBridge(val webView: TSWebView) {
     @JavascriptInterface
     fun downFile(url: String?){
         url?.let {
-            webView.downloadHandler.onDownload(it)
+            webView.downloadHandler.onDownloadWithDialog(it, userAgent = webView.settings.userAgentString)
         }
     }
 

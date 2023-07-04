@@ -46,11 +46,17 @@ fun RowScope.BackButton(drawerState: com.hinnka.tsbrowser.ui.composable.widget.B
 }
 
 @Composable
-fun RowScope.ForwardButton() {
+fun RowScope.ForwardButton(drawerState: com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState) {
     val tab by TabManager.currentTab
+    val scope = rememberCoroutineScope()
     IconButton(
         onClick = {
             tab?.goForward()
+            if(tab?.canGoForwardState?.value == false){
+                scope.launch {
+                    drawerState.close()
+                }
+            }
         },
         modifier = Modifier
             .weight(1f)
@@ -68,7 +74,7 @@ fun RowScope.HomeButton(drawerState: com.hinnka.tsbrowser.ui.composable.widget.B
 
     IconButton(
         onClick = {
-            TabManager.currentTab.value?.goHome()
+            tab?.goHome()
             scope.launch {
                 drawerState.close()
             }
