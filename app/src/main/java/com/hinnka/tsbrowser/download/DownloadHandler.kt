@@ -61,7 +61,7 @@ class DownloadHandler(val context: Context) : DownloadListener {
         OpenReceiver.register(context)
     }
 
-    fun onDownloadWithDialog(url: String, userAgent: String?, contentDisposition: String?, mimetype: String?, contentLength: Long) {
+    fun onDownloadWithDialog(url: String, userAgent: String? = null, contentDisposition: String? = null, mimetype: String? = null, contentLength: Long = -1L) {
         XLog.d("下载：$url, $contentDisposition, $mimetype, $contentLength")
         // if (tryOpenStream(url, contentDisposition, mimetype)) {
         //     return
