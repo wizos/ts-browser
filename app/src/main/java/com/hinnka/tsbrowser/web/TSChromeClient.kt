@@ -168,13 +168,21 @@ class TSChromeClient(private val controller: UIController) : WebChromeClient() {
         super.onPermissionRequestCanceled(request)
     }
 
-    override fun onJsTimeout(): Boolean {
-        return super.onJsTimeout()
-    }
+    // @Deprecated("Deprecated in Java",
+    //     ReplaceWith("super.onJsTimeout()", "android.webkit.WebChromeClient")
+    // )
+    // override fun onJsTimeout(): Boolean {
+    //     return super.onJsTimeout()
+    // }
 
-    override fun onConsoleMessage(message: String?, lineNumber: Int, sourceID: String?) {
-        super.onConsoleMessage(message, lineNumber, sourceID)
-    }
+    // @Deprecated("Deprecated in Java", ReplaceWith(
+    //     "super.onConsoleMessage(message, lineNumber, sourceID)",
+    //     "android.webkit.WebChromeClient"
+    // )
+    // )
+    // override fun onConsoleMessage(message: String?, lineNumber: Int, sourceID: String?) {
+    //     super.onConsoleMessage(message, lineNumber, sourceID)
+    // }
 
     override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
         val tag = "TSWebView"

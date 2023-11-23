@@ -59,7 +59,7 @@ fun TabButton(uiState: MutableState<UIState>) {
                                 LocalContentColor.current,
                                 RoundedCornerShape(4.dp)
                             )
-                            .size(20.dp),
+                            .sizeIn(minWidth = 20.dp, minHeight = 20.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -89,7 +89,7 @@ fun TabButton(uiState: MutableState<UIState>) {
                                 LocalContentColor.current,
                                 RoundedCornerShape(4.dp)
                             )
-                            .size(20.dp),
+                            .sizeIn(minWidth = 20.dp, minHeight = 20.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -118,7 +118,7 @@ fun TabButton(uiState: MutableState<UIState>) {
                             LocalContentColor.current,
                             RoundedCornerShape(4.dp)
                         )
-                        .size(20.dp),
+                        .sizeIn(minWidth = 20.dp, minHeight = 20.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(

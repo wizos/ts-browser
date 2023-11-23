@@ -5,11 +5,13 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.hardware.SensorManager
 import android.net.Uri
 import android.os.Build
 import android.view.inputmethod.InputMethodManager
 import android.webkit.WebView
 import androidx.compose.material.SnackbarHostState
+import androidx.core.content.getSystemService
 import cc.ibooker.zkeepalivelib.ZKeepAlive
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
@@ -35,6 +37,7 @@ import java.util.*
 
 
 class App : Application() {
+    val sensorManager by lazy { instance.getSystemService<SensorManager>()!! }
     val imm by lazy { instance.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
     override fun onCreate() {
         super.onCreate()

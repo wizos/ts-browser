@@ -28,6 +28,8 @@ import com.hinnka.tsbrowser.persist.Settings
 import com.hinnka.tsbrowser.tab.TabManager
 import com.hinnka.tsbrowser.tab.active
 import com.hinnka.tsbrowser.ui.AppViewModel
+import com.hinnka.tsbrowser.ui.LazyViewHostState
+import com.hinnka.tsbrowser.ui.LocalViewHostState
 import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.base.BaseActivity
 import com.hinnka.tsbrowser.ui.composable.bookmark.AddFolder
@@ -42,6 +44,7 @@ import com.hinnka.tsbrowser.ui.composable.widget.page.PageContainer
 import com.hinnka.tsbrowser.ui.composable.widget.page.PageController
 import com.hinnka.tsbrowser.ui.composable.widget.TSBottomDrawer
 import com.hinnka.tsbrowser.ui.theme.TSBrowserTheme
+import com.hinnka.tsbrowser.ui.view.VideoContainer
 import com.king.zxing.CameraScan
 import kotlinx.coroutines.launch
 
@@ -49,7 +52,8 @@ open class MainActivity: BaseActivity() {
 
     private val viewModel by viewModels<AppViewModel>()
 
-    lateinit var videoLayout: FrameLayout
+    // lateinit var videoLayout: FrameLayout
+    private val viewHostState = LazyViewHostState
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +64,11 @@ open class MainActivity: BaseActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
-            Providers {
+            CompositionLocalProvider(
+                LocalViewModel provides viewModel,
+                LocalLifecycleOwner provides this,
+                LocalViewHostState provides viewHostState,
+            ){
                 TSBrowserTheme {
                     PageContainer("main") {
                         page("main") { MainPage() }
@@ -72,13 +80,15 @@ open class MainActivity: BaseActivity() {
                         page("editBookmark") { EditBookmark(it?.get(0) as Bookmark) }
                     }
                     TSBottomDrawer(drawerState = AlertBottomSheet.drawerState)
-                    AndroidView(factory = { context ->
-                        FrameLayout(context).apply {
-                            isVisible = false
-                            videoLayout = this
-                            videoLayout.setBackgroundColor(Color.BLACK);
-                        }
-                    })
+                    // AndroidView(factory = { context ->
+                    //     FrameLayout(context).apply {
+                    //         isVisible = false
+                    //         videoLayout = this
+                    //         videoLayout.setBackgroundColor(Color.BLACK);
+                    //     }
+                    // })
+                    // 全屏视频
+                    AndroidView({ videoLayout })
                     ImeListener()
                 }
             }
@@ -89,7 +99,6 @@ open class MainActivity: BaseActivity() {
             handleIntent(intent)
         }
 
-
         logD("MainActivity onCreate complete")
     }
 
@@ -99,6 +108,7 @@ open class MainActivity: BaseActivity() {
         CompositionLocalProvider(
             LocalViewModel provides viewModel,
             LocalLifecycleOwner provides this,
+            LocalViewHostState provides viewHostState,
             content = content
         )
     }
@@ -205,11 +215,13 @@ open class MainActivity: BaseActivity() {
         TabManager.onPause()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         XLog.d("onBackPressed")
         super.onBackPressed()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         XLog.d("MainActivity 结果 $requestCode $resultCode")

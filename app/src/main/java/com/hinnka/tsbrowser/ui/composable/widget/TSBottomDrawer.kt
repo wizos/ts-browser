@@ -130,9 +130,8 @@ fun TSBottomDrawer(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 class BottomDrawerState {
-    val snackbarHostState = SnackbarHostState()
+    private val snackbarHostState = SnackbarHostState()
     suspend fun show(message: String,
                      actionLabel: String? = null,
                      duration: SnackbarDuration = SnackbarDuration.Short, onClick:() -> Unit = {}) {

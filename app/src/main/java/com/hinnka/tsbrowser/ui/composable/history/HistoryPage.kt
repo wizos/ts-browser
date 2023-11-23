@@ -35,7 +35,8 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemsIndexed
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.ext.isSameDay
 import com.hinnka.tsbrowser.ext.toDateString
@@ -96,7 +97,9 @@ fun HistoryPage() {
             }
         })
     }) {
-        LazyColumn {
+        LazyColumn(
+            modifier = Modifier.padding(it)
+        ) {
             item {
                 Row(
                     modifier = Modifier
@@ -138,7 +141,12 @@ fun HistoryPage() {
                 }
             }
 
-            itemsIndexed(lazyPagingItems) { index, item ->
+            items(
+                count = lazyPagingItems.itemCount,
+                key = lazyPagingItems.itemKey {it.id},
+                contentType = lazyPagingItems.itemContentType()
+            ) { index ->
+                val item = lazyPagingItems[index]
                 item?.let {
                     Column {
                         DateItemOrNull(lazyPagingItems, index)

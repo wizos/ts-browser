@@ -91,6 +91,7 @@ open class LabActivity: BaseActivity() {
         super.onPause()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         XLog.d("onBackPressed")
         super.onBackPressed()

@@ -44,12 +44,15 @@ val longPressImg = arrayOf(WebView.HitTestResult.IMAGE_TYPE, WebView.HitTestResu
 class TSWebView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
 ) : FastScrollWebView(context, attrs), UIController, LifecycleOwner {
+    override val lifecycle: Lifecycle
+        get() = lifecycleRegistry
 
     private val lifecycleRegistry = LifecycleRegistry(context as LifecycleOwner)
     private var fullScreenView: ViewGroup? = null
     private var origOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     val downloadHandler = DownloadHandler(context)
     var dataListener: WebDataListener? = null
+
 
     var goForwardUrls = mutableListOf<String>()
 
@@ -395,7 +398,4 @@ class TSWebView @JvmOverloads constructor(
         dataListener?.doUpdateVisitedHistory(url, isReload)
     }
 
-    override fun getLifecycle(): Lifecycle {
-        return lifecycleRegistry
-    }
 }

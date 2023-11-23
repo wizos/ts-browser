@@ -19,7 +19,6 @@ import com.hinnka.tsbrowser.ui.composable.main.ProgressIndicator
 import com.hinnka.tsbrowser.ui.composable.widget.Center
 import com.hinnka.tsbrowser.ui.home.UIState
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun BottomBar() {
     val viewModel = LocalViewModel.current

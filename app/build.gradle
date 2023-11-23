@@ -3,7 +3,7 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-parcelize'
     id "org.jetbrains.kotlin.kapt"
-    // id 'com.didi.dokit'
+    // id "com.google.devtools.ksp"
 }
 
 android {
@@ -15,17 +15,18 @@ android {
             keyPassword '900902'
         }
     }
-    compileSdkVersion 33
+    compileSdk 34
 
     // 为了代理webview流量
     useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "me.wizos.theview"
-        minSdkVersion 21
+        minSdkVersion 29
+        //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30 // 大于该版本时，无法弹出选择证书窗口
         versionCode 3
-        versionName "1.3.0"
+        versionName "1.3.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -42,19 +43,34 @@ android {
         //     debuggable true
         // }
     }
+    // 自定义打包名称
+    android.applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach {
+            // outputFileName = "TheView_${buildType.name}_v${versionName}.apk"
+            outputFileName = "TheView_${buildType.name}_v${versionName}_${generateTime()}.apk"
+        }
+    }
+
+    // compileOptions {
+    //     sourceCompatibility JavaVersion.VERSION_1_8
+    //     targetCompatibility JavaVersion.VERSION_1_8
+    // }
+    // kotlinOptions {
+    //     jvmTarget = '1.8'
+    //     freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    // }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
-        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
     buildFeatures {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion foundation_version
+        kotlinCompilerExtensionVersion kotlin_compiler_extension_version
     }
     packagingOptions {
         exclude 'META-INF/AL2.0'
@@ -62,81 +78,65 @@ android {
     }
 }
 
-
-// dokitExt {
-//     //通用设置
-//     comm {
-//         //地图经纬度开关
-//         gpsSwitch false
-//         //网络开关
-//         networkSwitch false
-//         //大图开关
-//         bigImgSwitch false
-//         //webView js 抓包
-//         webViewSwitch false
-//     }
-//
-//     slowMethod {
-//         //调用栈模式配置 对应gradle.properties中DOKIT_METHOD_STRATEGY=0
-//         // stackMethod {
-//         //     //默认值为 5ms 小于该值的函数在调用栈中不显示
-//         //     thresholdTime 10
-//         //     //调用栈函数入口 千万不要用我默认的配置 如果有特殊需求修改成项目中自己的入口 假如不需要可以去掉该字段
-//         //     enterMethods = ["com.didichuxing.doraemondemo.MainDebugActivity.test1"]
-//         //     //黑名单 粒度最小到类 暂不支持到方法  千万不要用我默认的配置 如果有特殊需求修改成项目中自己的入口 假如不需要可以去掉该字段
-//         //     methodBlacklist = ["com.facebook.drawee.backends.pipeline.Fresco"]
-//         // }
-//         //普通模式配置 对应gradle.properties中DOKIT_METHOD_STRATEGY=1
-//         normalMethod {
-//             //默认值为 500ms 小于该值的函数在运行时不会在控制台中被打印
-//             thresholdTime 500
-//             //需要针对函数插装的包名 千万不要用我默认的配置 如果有特殊需求修改成项目中自己的项目包名 假如不需要可以去掉该字段
-//             packageNames = ["me.wizos.loread"]
-//             //不需要针对函数插装的包名&类名 千万不要用我默认的配置 如果有特殊需求修改成项目中自己的项目包名 假如不需要可以去掉该字段
-//             methodBlacklist = ["me.wizos.loread.network"]
-//         }
-//     }
-// }
+//构建时间
+static def generateTime() {
+    return new Date().format("yyyy_MM_dd_HH_mm_ss")
+}
 
 dependencies {
     // 开发工具
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation "androidx.fragment:fragment-ktx:1.5.5"
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.fragment:fragment-ktx:1.6.2'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.material:material:$material_version"
     implementation "androidx.compose.material:material-icons-extended:$material_version"
     implementation "androidx.compose.ui:ui-tooling:$compose_version"
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    // Annotation processor
+    //noinspection LifecycleAnnotationProcessorWithJava8
+    kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
+    // ViewModel utilities for Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
+    // Saved state module for ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version")
+    // LiveData
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
+    // Lifecycles only (without ViewModel or LiveData)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version")
     // implementation 'androidx.activity:activity-compose:1.7.0-alpha01'
-    implementation 'androidx.activity:activity-compose:1.6.1'
+    implementation 'androidx.activity:activity-compose:1.8.1'
 
     // 在 Android 5 及更高版本上使用新式 WebView API
-    implementation "androidx.webkit:webkit:1.6.0"
+    implementation 'androidx.webkit:webkit:1.8.0'
 
     // 基于 mmap 的高性能通用 key-value 组件
     // [https://github.com/tencent/mmkv]
-    implementation 'com.tencent:mmkv:1.2.15'
+    implementation 'com.tencent:mmkv:1.3.2'
 
-    def room_version = "2.5.0"
+    def room_version = '2.6.0'
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     implementation "androidx.room:room-paging:$room_version"
-    def paging_version = "3.1.1"
+    def paging_version = '3.2.1'
     implementation "androidx.paging:paging-runtime-ktx:$paging_version"
-    implementation "androidx.paging:paging-compose:1.0.0-alpha16"
+    implementation 'androidx.paging:paging-compose:3.3.0-alpha02'
 
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.android.material:material:1.10.0'
 
 
     // Accompanist
     // Insets for Jetpack Compose
-    implementation "com.google.accompanist:accompanist-insets:$accompanist_version"
+    // implementation "com.google.accompanist:accompanist-insets:$accompanist_version"
     // implementation "com.google.accompanist:accompanist-insets:0.24.7-alpha"
     // System UI Controller
     // Jetpack Navigation Compose Material
@@ -144,8 +144,8 @@ dependencies {
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
 
     // okHttp
-    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-    implementation 'com.squareup.okio:okio:3.2.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okio:okio:3.6.0'
 
     implementation "com.github.ssseasonnn:RxDownload:1.1.4"
 
@@ -156,7 +156,7 @@ dependencies {
     implementation 'com.github.JeffMony:JeffM3U8Lib:1.2.0'
 
     // [https://github.com/jenly1314/ZXingLite]
-    implementation 'com.github.jenly1314:zxing-lite:2.3.0'
+    implementation 'com.github.jenly1314:zxing-lite:2.4.0'
 
     // [https://github.com/elvishew/xLog]
     implementation 'com.elvishew:xlog:1.11.0'

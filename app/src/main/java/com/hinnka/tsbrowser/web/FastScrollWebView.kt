@@ -92,7 +92,7 @@ open class FastScrollWebView : LollipopFixWebView, FastScrollDelegate.FastScroll
         return mFastScrollDelegate!!.awakenScrollBars()
     }
 
-    override fun dispatchDraw(canvas: Canvas?) {
+    override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
         mFastScrollDelegate!!.dispatchDrawOver(canvas)
     }
@@ -135,7 +135,7 @@ open class FastScrollWebView : LollipopFixWebView, FastScrollDelegate.FastScroll
     // 以下是自己添加的
     private var lastContentHeight = 0
     private var density = 1f
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         post {
             if (lastContentHeight != contentHeight) {

@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 object TabManager {
     val tabs = mutableStateListOf<Tab>()
     val currentTab = mutableStateOf<Tab?>(null)
-    var isInitialized = false
+    private var isInitialized = false
         private set
 
     fun open(context: Context, url: String, newTab: Boolean = false) {
