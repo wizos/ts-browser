@@ -25,8 +25,8 @@ import com.king.zxing.util.PermissionUtils
 
 
 class CaptureActivity : AppCompatActivity(), OnScanResultCallback {
-    var previewView: PreviewView? = null
-    var ivFlashlight: View? = null
+    private var previewView: PreviewView? = null
+    private var ivFlashlight: View? = null
 
     private var cameraScan: CameraScan? = null
 

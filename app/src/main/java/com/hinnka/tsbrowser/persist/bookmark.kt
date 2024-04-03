@@ -74,7 +74,8 @@ data class Bookmark(
     }
 
     companion object {
-        val rootPath = File(App.instance.filesDir, "bookmark_${App.processName}")
+        private val rootPath = File(App.instance.filesDir, "bookmark_${App.processName}")
+        private val rootExPath = File(App.instance.getExternalFilesDir(null), "bookmark_${App.processName}")
 
         var root = Bookmark(
             guid = UUID(0, 0).toString(),
@@ -114,6 +115,7 @@ data class Bookmark(
                     gson.fromJson(it, Bookmark::class.java)
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
             }
             list.clear()
             list.addAll(buildTree())
@@ -129,6 +131,27 @@ data class Bookmark(
                     val str = gson.toJson(root)
                     rootPath.writeText(str)
                 }.onFailure { logE("Bookmark addChild error", throwable = it) }
+            }
+        }
+        fun import(){
+            if (!rootExPath.exists()) return
+            try {
+                root = FileReader(rootExPath).use {
+                    gson.fromJson(it, Bookmark::class.java)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            list.clear()
+            list.addAll(buildTree())
+            save()
+        }
+        fun export(){
+            ioScope.launch {
+                runCatching {
+                    val str = gson.toJson(root)
+                    rootExPath.writeText(str)
+                }.onFailure { logE("Bookmark export error", throwable = it) }
             }
         }
     }

@@ -53,9 +53,8 @@ class App : Application() {
             `package` = packageName
         })
         initBrowser()
-        if(BuildConfig.DEBUG) ZKeepAlive.instance.register(this)
 
-        if (Settings.keepAlive) {
+        if (Settings.keepAlive || BuildConfig.DEBUG) {
             ZKeepAlive.instance.register(this)
         }
 

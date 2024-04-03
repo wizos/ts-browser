@@ -1,5 +1,6 @@
 package com.hinnka.tsbrowser.ui.composable.settings
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -28,9 +29,13 @@ import com.hinnka.tsbrowser.BuildConfig
 import com.hinnka.tsbrowser.PackageName
 import com.hinnka.tsbrowser.R
 import com.hinnka.tsbrowser.URL
+import com.hinnka.tsbrowser.ext.ioScope
+import com.hinnka.tsbrowser.persist.AppDatabase
+import com.hinnka.tsbrowser.persist.Bookmark
 import com.hinnka.tsbrowser.persist.NameValue
 import com.hinnka.tsbrowser.persist.SettingOptions
 import com.hinnka.tsbrowser.persist.Settings
+import com.hinnka.tsbrowser.ui.LabActivity
 import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.composable.widget.BottomDrawerState
 import com.hinnka.tsbrowser.ui.composable.widget.TSAppBar
@@ -338,6 +343,7 @@ fun SettingsPage() {
                         try {
                             context.startActivity(intent)
                         } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     },
                     text = { Text(text = stringResource(id = R.string.update)) },
@@ -369,10 +375,31 @@ fun SettingsPage() {
                     }
                 )
                 if (BuildConfig.DEBUG){
+                    val activity = LocalContext.current
                     ListItem(
-                        modifier = Modifier.clickable { },
+                        modifier = Modifier.clickable {
+                            (context as? Activity)?.startActivity(Intent(activity, LabActivity::class.java))
+                        },
                         text = { Text(text = stringResource(id = R.string.lab), modifier = Modifier.align(Alignment.CenterHorizontally), color = Color.Red) }
                     )
+
+                    TextButton(onClick = {
+                        ioScope.launch {
+                            Bookmark.export()
+                            AppDatabase.instance.export()
+                        }
+                    }) {
+                        Text(text = "导出")
+                    }
+
+                    TextButton(onClick = {
+                        ioScope.launch {
+                            Bookmark.import()
+                            AppDatabase.instance.import()
+                        }
+                    }) {
+                        Text(text = "导入")
+                    }
                 }
             }
         }

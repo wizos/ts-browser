@@ -322,6 +322,7 @@ class TSWebView @JvmOverloads constructor(
         try {
             parentView?.keepScreenOn = true
         } catch (e: Exception) {
+            e.printStackTrace()
         }
         // parentView?.setFullScreen(true)
         (context as? MainActivity)?.window?.let { fullScreenView?.setFullScreen(it, true) }
@@ -332,6 +333,7 @@ class TSWebView @JvmOverloads constructor(
         try {
             fullScreenView?.keepScreenOn = false
         } catch (e: Exception) {
+            e.printStackTrace()
         }
         // fullScreenView?.setFullScreen(false)
         (context as? MainActivity)?.window?.let { fullScreenView?.setFullScreen(it, true) }

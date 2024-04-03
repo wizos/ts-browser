@@ -1,13 +1,17 @@
 package com.hinnka.tsbrowser.ui.theme
 
 import android.annotation.SuppressLint
-import androidx.compose.material.Colors
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
+import android.os.Build
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hinnka.tsbrowser.App
 import com.hinnka.tsbrowser.ext.logD
@@ -41,8 +45,37 @@ val Colors.primaryLight: Color get() = if (isLight) PrimaryWhite else PrimaryDar
 
 
 @Composable
-fun TSBrowserTheme(content: @Composable() () -> Unit) {
+fun TSBrowserTheme(
+    // Dynamic color is available on Android 12+
+    // useDynamicColors: Boolean = true,
+    content: @Composable() () -> Unit
+) {
     logD("TSBrowserTheme start")
+    // val colors = if (App.isSecretMode || Settings.darkModeState.value) {
+    //     DarkColorPalette
+    // } else {
+    //     LightColorPalette
+    // }
+    //
+    // // val darkIcons = MaterialTheme.colors.isLight
+    // val darkIcons = colors == LightColorPalette
+    // val systemUiController = rememberSystemUiController()
+    // SideEffect {
+    //     systemUiController.setSystemBarsColor(
+    //         color = Color.Transparent,
+    //         darkIcons = darkIcons,
+    //         isNavigationBarContrastEnforced = false // 当需要完全透明的背景时，系统是否应该确保导航栏有足够的对比度。仅在API 29+上支持。
+    //     )
+    // }
+    //
+    // MaterialTheme(
+    //     colors = colors,
+    //     typography = Typography,
+    //     shapes = Shapes,
+    //     content = content
+    // )
+
+    val useDarkTheme = App.isSecretMode || Settings.darkModeState.value
     val colors = if (App.isSecretMode || Settings.darkModeState.value) {
         DarkColorPalette
     } else {
@@ -50,20 +83,98 @@ fun TSBrowserTheme(content: @Composable() () -> Unit) {
     }
 
     // val darkIcons = MaterialTheme.colors.isLight
-    val darkIcons = colors == LightColorPalette
+    // val darkIcons = colors == LightColorPalette
     val systemUiController = rememberSystemUiController()
-    SideEffect {
+    DisposableEffect(systemUiController, colors) {
+        // navigationBarContrastEnforced - 当需要完全透明的背景时，系统是否应该确保导航栏有足够的对比度。仅在API 29+上支持。
         systemUiController.setSystemBarsColor(
-            color = Color.Transparent,
-            darkIcons = darkIcons,
-            isNavigationBarContrastEnforced = false // 当需要完全透明的背景时，系统是否应该确保导航栏有足够的对比度。仅在API 29+上支持。
+            color = colors.background,
+            // darkIcons = colorScheme.background.luminance() > 0.5,
+            // isNavigationBarContrastEnforced = useDarkTheme,
+            // transformColorForLightContent = { Color.Black.copy(alpha = 0.6F) }
         )
+        // 该属性保存状态和导航栏图标+内容是否为“黑色”。
+        systemUiController.systemBarsDarkContentEnabled = !useDarkTheme
+        onDispose {}
     }
 
-    MaterialTheme(
-        colors = colors,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+    CompositionLocalProvider {
+        MaterialTheme(
+            colors = colors,
+            typography = Typography,
+            shapes = Shapes,
+            content = {
+                // A surface container using the 'background' color from the theme
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                    // .statusBarsPadding()
+                    // .navigationBarsPadding()
+                    // .imePadding()
+                    ,
+                    color = colors.background,
+                    contentColor = colors.onBackground,
+                    content = content
+                )
+            }
+        )
+    }
+    // SideEffect {
+    //     systemUiController.setSystemBarsColor(
+    //         color = Color.Transparent,
+    //         darkIcons = darkIcons,
+    //         isNavigationBarContrastEnforced = false // 当需要完全透明的背景时，系统是否应该确保导航栏有足够的对比度。仅在API 29+上支持。
+    //     )
+    // }
+    //
+    // MaterialTheme(
+    //     colors = colors,
+    //     typography = Typography,
+    //     shapes = Shapes,
+    //     content = content
+    // )
+
+    // val useDarkTheme = App.isSecretMode || Settings.darkModeState.value
+    //
+    // val colorScheme = when {
+    //     useDynamicColors && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+    //         val context = LocalContext.current
+    //         if (useDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    //     }
+    //     useDarkTheme -> darkColorScheme()
+    //     else -> lightColorScheme()
+    // }
+    //
+    // val systemUiController = rememberSystemUiController()
+    // DisposableEffect(systemUiController, useDarkTheme) {
+    //     // navigationBarContrastEnforced - 当需要完全透明的背景时，系统是否应该确保导航栏有足够的对比度。仅在API 29+上支持。
+    //     systemUiController.setSystemBarsColor(
+    //         color = colorScheme.background,
+    //         // darkIcons = colorScheme.background.luminance() > 0.5,
+    //         // isNavigationBarContrastEnforced = useDarkTheme,
+    //         // transformColorForLightContent = { Color.Black.copy(alpha = 0.6F) }
+    //     )
+    //     // 该属性保存状态和导航栏图标+内容是否为“黑色”。
+    //     systemUiController.systemBarsDarkContentEnabled = !useDarkTheme
+    //     onDispose {}
+    // }
+    //
+    // CompositionLocalProvider(LocalSystemUiController provides systemUiController) {
+    //     MaterialTheme(
+    //         colorScheme = colorScheme,
+    //         typography = Typography,
+    //         content = {
+    //             // A surface container using the 'background' color from the theme
+    //             Surface(
+    //                 modifier = Modifier.fillMaxSize()
+    //                 .statusBarsPadding()
+    //                 // .navigationBarsPadding()
+    //                 // .imePadding()
+    //                 ,
+    //                 color = colorScheme.background,
+    //                 contentColor = colorScheme.onBackground,
+    //                 content = content
+    //             )
+    //         }
+    //     )
+    // }
 }

@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.Browser
 import android.view.View
 import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
@@ -80,13 +81,10 @@ open class MainActivity: BaseActivity() {
                         page("editBookmark") { EditBookmark(it?.get(0) as Bookmark) }
                     }
                     TSBottomDrawer(drawerState = AlertBottomSheet.drawerState)
-                    // AndroidView(factory = { context ->
-                    //     FrameLayout(context).apply {
-                    //         isVisible = false
-                    //         videoLayout = this
-                    //         videoLayout.setBackgroundColor(Color.BLACK);
-                    //     }
-                    // })
+
+                    BackHandler(videoLayout.visibleState.value) {
+                        hideFullScreenView()
+                    }
                     // 全屏视频
                     AndroidView({ videoLayout })
                     ImeListener()
