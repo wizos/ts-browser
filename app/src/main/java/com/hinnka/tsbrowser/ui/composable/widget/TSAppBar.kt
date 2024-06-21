@@ -21,7 +21,7 @@ fun TSAppBar(
 ) {
     val backPressDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     Column {
-        StatusBar()
+        // StatusBar()
         Box(modifier = Modifier.height(56.dp), contentAlignment = Alignment.Center) {
             Text(text = title, style = MaterialTheme.typography.h6)
             Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {

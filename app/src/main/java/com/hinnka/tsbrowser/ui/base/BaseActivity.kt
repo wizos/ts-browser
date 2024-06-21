@@ -13,6 +13,7 @@ import android.view.View
 import android.view.WindowManager
 import android.webkit.WebChromeClient
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -37,7 +38,7 @@ open class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        // enableEdgeToEdge()
         videoLayout = VideoContainer(this)
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
             permissionCallback.invoke(it)
@@ -135,6 +136,8 @@ open class BaseActivity : ComponentActivity() {
     }
     fun hideFullScreenView(){
         XLog.d("取消全屏")
+        videoLayout.hideFullScreen(window)
+
         App.instance.sensorManager.unregisterListener(gravitySensorListener)
         // if (requestedOrientation != origOrientation) {
         if(resources.configuration.orientation != origOrientation){
@@ -147,7 +150,5 @@ open class BaseActivity : ComponentActivity() {
             }
             mFlags.clear()
         }
-
-        videoLayout.hideFullScreen(window)
     }
 }

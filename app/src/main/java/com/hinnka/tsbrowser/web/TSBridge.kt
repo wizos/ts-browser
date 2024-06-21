@@ -105,7 +105,7 @@ class TSBridge(val webView: TSWebView) {
 
     @JavascriptInterface
     fun onFetchIconHref(url: String?, href: String?) {
-        XLog.e("取到iconurl：" + url + ", " + href)
+        XLog.d("取到iconurl：$url, $href")
         if(url.isNullOrBlank() || href.isNullOrBlank()){
             XLog.e("url 为空")
         }else{

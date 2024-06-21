@@ -18,6 +18,7 @@ import android.widget.FrameLayout
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.isVisible
 import com.elvishew.xlog.XLog
+import com.hinnka.tsbrowser.ext.removeFromParent
 import com.hinnka.tsbrowser.ext.setFullScreen
 
 class VideoContainer: FrameLayout {
@@ -42,10 +43,15 @@ class VideoContainer: FrameLayout {
 
         if (isVisible) callback?.onCustomViewHidden()
 
+        view.removeFromParent()
+
         removeAllViews()
+
         addView(view, WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
+
         isVisible = true
-        setFullScreen(window, true)
+
+        window.setFullScreen(true)
         try {
             keepScreenOn = true
         } catch (e: Exception) {
@@ -56,16 +62,17 @@ class VideoContainer: FrameLayout {
     fun hideFullScreen(window: Window){
         isVisible = false
         removeAllViews()
-        setFullScreen(window, false)
+        // 调用CustomViewCallback的onCustomViewHidden方法告知WebView退出全屏模式
+        customViewCallback?.onCustomViewHidden()
+        customViewCallback = null
+
+        window.setFullScreen(false)
+
         try {
             keepScreenOn = false
         } catch (e: Exception) {
             XLog.e(e)
             e.printStackTrace()
         }
-
-        // 调用CustomViewCallback的onCustomViewHidden方法告知WebView退出全屏模式
-        customViewCallback?.onCustomViewHidden()
-        customViewCallback = null
     }
 }

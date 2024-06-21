@@ -2,19 +2,14 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-parcelize'
-    id "org.jetbrains.kotlin.kapt"
-    // id "com.google.devtools.ksp"
+    // id "org.jetbrains.kotlin.kapt"
+    id "com.google.devtools.ksp"
 }
 
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+
 android {
-    signingConfigs {
-        release {
-            storeFile file('../ts.key')
-            storePassword '900902'
-            keyAlias 'default'
-            keyPassword '900902'
-        }
-    }
     compileSdk 34
 
     // 为了代理webview流量
@@ -28,7 +23,25 @@ android {
         versionCode 3
         versionName "1.3.1"
 
+        ksp {
+            // 配置并启用将数据库架构导出到给定目录中的 JSON 文件的功能。
+            arg("room.schemaLocation", "$projectDir/schemas")
+            // 启用 Gradle 增量注解处理器
+            arg("room.incremental", "true")
+            // arg("room.generateKotlin", "true")
+            // 配置 Room 以重写查询，使其顶部星形投影在展开后仅包含 DAO 方法返回类型中定义的列
+            // arg("room.expandProjection", "true")
+        }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(localProperties['storeFile'])
+            storePassword localProperties['storePassword']
+            keyAlias localProperties['keyAlias']
+            keyPassword localProperties['keyPassword']
+        }
     }
 
     buildTypes {
@@ -37,11 +50,11 @@ android {
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        // debug {
-        //     applicationIdSuffix '.compose' //增加包名后缀 debug
-        //     minifyEnabled false
-        //     debuggable true
-        // }
+        debug {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            debuggable true
+        }
     }
     // 自定义打包名称
     android.applicationVariants.configureEach { variant ->
@@ -51,6 +64,14 @@ android {
         }
     }
 
+    // compileOptions {
+    //     sourceCompatibility JavaVersion.VERSION_1_8
+    //     targetCompatibility JavaVersion.VERSION_1_8
+    // }
+    // kotlinOptions {
+    //     jvmTarget = '1.8'
+    //     freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    // }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -76,23 +97,25 @@ static def generateTime() {
 }
 
 dependencies {
+    implementation 'androidx.compose.material3:material3-android:1.2.1'
+
     // 开发工具
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.fragment:fragment-ktx:1.6.2'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.fragment:fragment-ktx:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.material:material:$material_version"
     implementation "androidx.compose.material:material-icons-extended:$material_version"
     implementation "androidx.compose.ui:ui-tooling:$compose_version"
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.2'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     // Annotation processor
     //noinspection LifecycleAnnotationProcessorWithJava8
-    kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
+    ksp "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
     // ViewModel utilities for Compose
@@ -104,24 +127,24 @@ dependencies {
     // Lifecycles only (without ViewModel or LiveData)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version")
-    implementation 'androidx.activity:activity-compose:1.8.2'
+    implementation 'androidx.activity:activity-compose:1.9.0'
 
     // 在 Android 5 及更高版本上使用新式 WebView API
-    implementation 'androidx.webkit:webkit:1.10.0'
+    implementation 'androidx.webkit:webkit:1.11.0'
 
     // 基于 mmap 的高性能通用 key-value 组件
     // [https://github.com/tencent/mmkv]
-    implementation 'com.tencent:mmkv:1.3.3'
+    implementation 'com.tencent:mmkv:1.3.5'
 
     implementation "androidx.room:room-runtime:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     implementation "androidx.room:room-paging:$room_version"
-    def paging_version = '3.2.1'
+    def paging_version = '3.3.0'
     implementation "androidx.paging:paging-runtime-ktx:$paging_version"
-    implementation 'androidx.paging:paging-compose:3.3.0-alpha03'
+    implementation 'androidx.paging:paging-compose:3.3.0'
 
-    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'com.google.android.material:material:1.12.0'
 
 
     // Accompanist
@@ -132,15 +155,13 @@ dependencies {
 
     // okHttp
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    implementation 'com.squareup.okio:okio:3.8.0'
+    implementation 'com.squareup.okio:okio:3.9.0'
 
     implementation "com.github.ssseasonnn:RxDownload:1.1.4"
 
     // 支持m3u8下载
     // [https://github.com/JeffMony/VideoDownloader]
-    implementation 'com.github.JeffMony:VideoDownloader:5.8.0'
-    // 支持m3u8合并
-    implementation 'com.github.JeffMony:JeffM3U8Lib:1.2.0'
+    implementation 'com.github.JeffMony:VideoDownloader:6.1.0'
 
     // [https://github.com/jenly1314/ZXingLite]
     implementation 'com.github.jenly1314:zxing-lite:2.4.0'

@@ -1,51 +1,21 @@
 package com.hinnka.tsbrowser.ui
 
 import ImeListener
-import android.app.SearchManager
-import android.content.Intent
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
-import android.provider.Browser
-import android.view.View
-import android.widget.FrameLayout
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.hinnka.tsbrowser.ext.logD
-import com.hinnka.tsbrowser.ext.toUrl
-import com.hinnka.tsbrowser.persist.Bookmark
-import com.hinnka.tsbrowser.persist.LocalStorage
-import com.hinnka.tsbrowser.persist.Settings
-import com.hinnka.tsbrowser.tab.TabManager
-import com.hinnka.tsbrowser.tab.active
-import com.hinnka.tsbrowser.ui.AppViewModel
-import com.hinnka.tsbrowser.ui.LocalViewModel
 import com.hinnka.tsbrowser.ui.base.BaseActivity
 import com.hinnka.tsbrowser.ui.composable.LabPage
-import com.hinnka.tsbrowser.ui.composable.bookmark.AddFolder
-import com.hinnka.tsbrowser.ui.composable.bookmark.BookmarkPage
-import com.hinnka.tsbrowser.ui.composable.bookmark.EditBookmark
-import com.hinnka.tsbrowser.ui.composable.download.DownloadPage
-import com.hinnka.tsbrowser.ui.composable.history.HistoryPage
-import com.hinnka.tsbrowser.ui.composable.main.MainPage
-import com.hinnka.tsbrowser.ui.composable.settings.SettingsPage
 import com.hinnka.tsbrowser.ui.composable.widget.AlertBottomSheet
 import com.hinnka.tsbrowser.ui.composable.widget.page.PageContainer
-import com.hinnka.tsbrowser.ui.composable.widget.page.PageController
 import com.hinnka.tsbrowser.ui.composable.widget.TSBottomDrawer
 import com.hinnka.tsbrowser.ui.theme.TSBrowserTheme
-import com.king.zxing.CameraScan
-import kotlinx.coroutines.launch
 
 open class LabActivity: BaseActivity() {
     private val viewModel by viewModels<AppViewModel>()

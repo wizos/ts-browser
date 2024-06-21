@@ -14,7 +14,6 @@ import android.view.*
 import android.view.inputmethod.InputMethodManager
 import android.webkit.*
 import android.widget.FrameLayout
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -48,8 +47,8 @@ class TSWebView @JvmOverloads constructor(
         get() = lifecycleRegistry
 
     private val lifecycleRegistry = LifecycleRegistry(context as LifecycleOwner)
-    private var fullScreenView: ViewGroup? = null
-    private var origOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+    // private var fullScreenView: ViewGroup? = null
+    // private var origOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     val downloadHandler = DownloadHandler(context)
     var dataListener: WebDataListener? = null
 
@@ -299,60 +298,63 @@ class TSWebView @JvmOverloads constructor(
         requestedOrientation: Int,
         callback: WebChromeClient.CustomViewCallback
     ) {
-        origOrientation = requestedOrientation
-        post {
-            val resolver = context.contentResolver
-            val autoRotationOff = android.provider.Settings.System.getInt(
-                resolver,
-                android.provider.Settings.System.ACCELEROMETER_ROTATION
-            ) == 0
-            if (autoRotationOff && activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
-                activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-            }
-        }
-        view.removeFromParent()
-        if (fullScreenView != null) {
-            callback.onCustomViewHidden()
-        }
+        // origOrientation = requestedOrientation
+        // post {
+        //     val resolver = context.contentResolver
+        //     val autoRotationOff = android.provider.Settings.System.getInt(
+        //         resolver,
+        //         android.provider.Settings.System.ACCELEROMETER_ROTATION
+        //     ) == 0
+        //     if (autoRotationOff && activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+        //         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        //     }
+        // }
+        // view.removeFromParent()
+        // if (fullScreenView != null) {
+        //     callback.onCustomViewHidden()
+        // }
+        //
+        // val parentView = (context as? MainActivity)?.videoLayout
+        // parentView?.removeAllViews()
+        // parentView?.addView(view, FrameLayout.LayoutParams(-1, -1))
+        // parentView?.isVisible = true
+        // try {
+        //     parentView?.keepScreenOn = true
+        // } catch (e: Exception) {
+        //     e.printStackTrace()
+        // }
+        // (context as? MainActivity)?.window?.let { fullScreenView?.setFullScreen(it, true) }
+        // fullScreenView = parentView
 
-        val parentView = (context as? MainActivity)?.videoLayout
-        parentView?.removeAllViews()
-        parentView?.addView(view, FrameLayout.LayoutParams(-1, -1))
-        parentView?.isVisible = true
-        try {
-            parentView?.keepScreenOn = true
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        // parentView?.setFullScreen(true)
-        (context as? MainActivity)?.window?.let { fullScreenView?.setFullScreen(it, true) }
-        fullScreenView = parentView
+        (context as? MainActivity)?.showFullScreenView(view, callback)
     }
 
     override fun onHideCustomView() {
-        try {
-            fullScreenView?.keepScreenOn = false
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        // fullScreenView?.setFullScreen(false)
-        (context as? MainActivity)?.window?.let { fullScreenView?.setFullScreen(it, true) }
-        fullScreenView?.isVisible = false
-        fullScreenView?.removeAllViews()
-        if (activity?.requestedOrientation != origOrientation) {
-            activity?.requestedOrientation = origOrientation
-        }
-        fullScreenView = null
+        (context as? MainActivity)?.hideFullScreenView()
 
-        //如果开启
-        if (App.instance.imm.isActive) {
-            //关闭软键盘，开启方法相同，这个方法是切换开启与关闭状态的
-            // App.instance.imm.toggleSoftInput(
-            //     InputMethodManager.SHOW_IMPLICIT,
-            //     InputMethodManager.HIDE_NOT_ALWAYS
-            // )
-            App.instance.imm.hideSoftInputFromWindow(applicationWindowToken, InputMethodManager.HIDE_NOT_ALWAYS)
-        }
+        // try {
+        //     fullScreenView?.keepScreenOn = false
+        // } catch (e: Exception) {
+        //     e.printStackTrace()
+        // }
+        // // fullScreenView?.setFullScreen(false)
+        // (context as? MainActivity)?.window?.let { fullScreenView?.setFullScreen(it, true) }
+        // fullScreenView?.isVisible = false
+        // fullScreenView?.removeAllViews()
+        // if (activity?.requestedOrientation != origOrientation) {
+        //     activity?.requestedOrientation = origOrientation
+        // }
+        // fullScreenView = null
+        //
+        // //如果开启
+        // if (App.instance.imm.isActive) {
+        //     //关闭软键盘，开启方法相同，这个方法是切换开启与关闭状态的
+        //     // App.instance.imm.toggleSoftInput(
+        //     //     InputMethodManager.SHOW_IMPLICIT,
+        //     //     InputMethodManager.HIDE_NOT_ALWAYS
+        //     // )
+        //     App.instance.imm.hideSoftInputFromWindow(applicationWindowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+        // }
     }
 
     override fun onCreateWindow(resultMsg: Message): Boolean {

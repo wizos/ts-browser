@@ -42,7 +42,7 @@ fun MainPage() {
     TSBottomDrawer(drawerState = mainDrawerState) {
         CompositionLocalProvider(LocalMainDrawerState provides mainDrawerState) {
             Column {
-                StatusBar()
+                // StatusBar()
                 MainView()
             }
         }

@@ -54,7 +54,7 @@ class TSWebClient(private val controller: UIController) : WebViewClient() {
      */
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         val uri = request.url
-        XLog.e("shouldOverrideUrlLoading ${uri}")
+        XLog.d("shouldOverrideUrlLoading $uri")
 
         if (localSchemes.contains(uri.scheme)) {
             return controller.shouldOverrideUrlLoading(view, request)
