@@ -50,7 +50,6 @@ import com.king.zxing.CameraScan
 import kotlinx.coroutines.launch
 
 open class MainActivity: BaseActivity() {
-
     private val viewModel by viewModels<AppViewModel>()
 
     // lateinit var videoLayout: FrameLayout
@@ -129,13 +128,13 @@ open class MainActivity: BaseActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
     }
 
-    private fun handleIntent(intent: Intent?) {
-        intent ?: return
+    private fun handleIntent(intent: Intent) {
+        // intent ?: return
         logD(
             "handleIntent: ${intent.action} ${
                 intent.extras?.keySet()?.joinToString(",")

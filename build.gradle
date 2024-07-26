@@ -7,7 +7,7 @@ buildscript {
         kotlin_compiler_extension_version = '1.5.9'
         accompanist_version = '0.34.0'
         kotlin_version = '1.9.22'
-        lifecycle_version = '2.8.2'
+        lifecycle_version = '2.8.3'
         room_version = '2.6.1'
     }
     repositories {
